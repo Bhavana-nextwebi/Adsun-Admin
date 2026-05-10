@@ -16,11 +16,11 @@ export const DashboardPage = () => {
                 const userData = await fetchUserProfile();
 
                 if (userData.data.result.userRole === 1) {
-                    setSectionDisabled(false);
+                 //   setSectionDisabled(false);
                 } else if (userData.data.result.id === 96) {
-                    setSectionDisabled(false);
+                  //  setSectionDisabled(false);
                 } else {
-                    setSectionDisabled(true);
+                   // setSectionDisabled(true);
                     navigate('/user-dashboard'); 
                 }
             } catch (error) {
