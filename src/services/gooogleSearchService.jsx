@@ -1,10 +1,7 @@
 import axiosInstance from '../Interceptors/axiosInstance.jsx';
-import Cookies from 'js-cookie';
 
-const headers = {
-  'Authorization': `Bearer ${Cookies.get('accessToken')}`,
-  'Content-Type': 'application/json',
-};
+
+
 
 export const getAllSearchResults = async (
   fromDate,

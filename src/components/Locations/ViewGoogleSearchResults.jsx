@@ -169,11 +169,7 @@ export const ViewGoogleSearchResult = () => {
 
   };
 
-const rowTextStyle = {
-  fontSize: '13px',
-  color: '#344054',
-  fontWeight: '500'
-};
+
 const thStyle = {
   fontSize: '14px',
   fontWeight: '700',

@@ -1,11 +1,7 @@
 import axiosInstance from '../Interceptors/axiosInstance.jsx';
-import Cookies from 'js-cookie';
 
-const headers = {
-  'accept': '*/*',
-  'Authorization': `Bearer ${Cookies.get('accessToken')}`,
-  'Content-Type': 'application/json',
-}; 
+
+
 export const getAllCategories = async () => {
   const response = await axiosInstance.get('category/Getallcategories');
   return response.data;

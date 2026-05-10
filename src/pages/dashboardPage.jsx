@@ -1,9 +1,5 @@
 import React, {useState, useEffect} from 'react'
 import { DashboardIntro } from '../components/Dashboard/DashboardIntro'
-import { DashboardBasicDetails } from '../components/Dashboard/DashboardBasicDetails'
-import { DashboardRevenue } from '../components/Dashboard/DashboardRevenue'
-import { DashboardUpcomingVacations } from '../components/Dashboard/DashboardUpcomingVacations'
-import { DashboardAssetsOrders } from '../components/Dashboard/DashboardAssetsOrders'
 import { useNavigate } from 'react-router-dom';
 import { fetchUserProfile } from '../services/newUserService';
 import ComponentHeader from '../components/Common/OtherElements/ComponentHeader'
@@ -12,7 +8,7 @@ import { handleErrors } from '../utils/errorHandler'
 export const DashboardPage = () => {
 
     const navigate = useNavigate();
-    const [sectiondisable, setSectionDisabled] = useState(true);
+ 
 
     useEffect(() => {
         const fetchUserData = async () => {
