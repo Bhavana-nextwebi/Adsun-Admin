@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Swal from 'sweetalert2';
 import Flatpickr from 'react-flatpickr';
 
 import 'flatpickr/dist/themes/material_blue.css';
 
 import {
-  getAllSearchResults,
-  deleteSearchResult
+  getAllSearchResults
 } from '../../services/gooogleSearchService';
 
 import {
@@ -19,7 +17,7 @@ import EntriesDropdown from '../Common/TableComponent/EntriesDropdown';
 import { Pagination } from '../Common/TableComponent/Pagination';
 import { Loading } from '../Common/OtherElements/Loading';
 import { TableDataStatusError } from '../Common/OtherElements/TableDataStatusError';
-import { confirmDelete } from '../Common/OtherElements/confirmDeleteClone';
+
 import { handleErrors } from '../../utils/errorHandler';
 import { usePageLevelAccess } from '../../hooks/usePageLevelAccess';
 

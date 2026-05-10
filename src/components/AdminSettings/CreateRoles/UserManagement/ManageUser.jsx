@@ -79,15 +79,16 @@ export const ManageUser = () => {
 }, []);
 
   // 🔥 Debounce search (prevents API spam)
-  useEffect(() => {
-    const delay = setTimeout(() => {
-      setCurrentPage(1); // reset page on search
-      fetchUsers();
-    }, 500);
+useEffect(() => {
+  const delay = setTimeout(() => {
+    setCurrentPage(1);
+    fetchUsers();
+  }, 500);
 
-    return () => clearTimeout(delay);
-  }, [searchQuery]);
+  return () => clearTimeout(delay);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [searchQuery]);
   const totalPages = Math.ceil(totalRecords / entriesPerPage);
 
   const handleEntriesChange = (value) => {
