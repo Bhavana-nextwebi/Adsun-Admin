@@ -16,7 +16,6 @@ import {
   createPassword,
 } from "../../../../services/newUserService";
 
-import Swal from "sweetalert2";
 import allImages from "../../../../assets/images-import";
 import { confirmDelete } from "../../../Common/OtherElements/confirmDeleteClone";
 import { TableDataStatusError } from "../../../Common/OtherElements/TableDataStatusError";
@@ -75,8 +74,9 @@ export const ManageUser = () => {
   };
 
   useEffect(() => {
-    fetchUsers();
-  }, [currentPage, entriesPerPage]);
+   fetchUsers();
+   // eslint-disable-next-line
+}, []);
 
   // 🔥 Debounce search (prevents API spam)
   useEffect(() => {

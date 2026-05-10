@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast, ToastContainer } from "react-toastify";
+
 import { paginateData, calculateTotalPages } from "../../assets/js/script";
 import TableHeader from "../Common/TableComponent/TableHeader";
 import EntriesDropdown from "../Common/TableComponent/EntriesDropdown";
@@ -53,7 +53,7 @@ export const ManageAppUser = () => {
   }, []);
 
   const filteredData = manageAppUsers.filter((user) =>
-    user.firstName ?.toLowerCase().includes(searchQuery.toLowerCase())
+   user.firstName?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const currentData = paginateData(filteredData, currentPage, entriesPerPage);

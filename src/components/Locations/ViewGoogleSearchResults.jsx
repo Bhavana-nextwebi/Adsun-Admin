@@ -64,10 +64,10 @@ export const ViewGoogleSearchResult = () => {
   }, [pageAccessData, navigate]);
 
   // INITIAL LOAD
-  useEffect(() => {
-    fetchData();
-  }, []);
-
+useEffect(() => {
+   fetchData();
+   // eslint-disable-next-line
+}, []);
   // FETCH DATA
   const fetchData = async () => {
 
@@ -113,33 +113,7 @@ export const ViewGoogleSearchResult = () => {
     }
   };
 
-  // DELETE
-  const handleDelete = async (id) => {
 
-    const confirmed = await confirmDelete('searchResult');
-
-    if (!confirmed) return;
-
-    try {
-
-      await deleteSearchResult(id);
-
-      setData((prev) =>
-        prev.filter((item) => item.id !== id)
-      );
-
-      Swal.fire(
-        'Deleted!',
-        'Record deleted successfully!',
-        'success'
-      );
-
-    } catch (error) {
-
-      handleErrors(error);
-
-    }
-  };
 
   // SEARCH FILTER
   const filteredData = data.filter((item) =>
