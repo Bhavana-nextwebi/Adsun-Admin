@@ -103,7 +103,7 @@ export const SignInContent = () => {
                       <div className="card-body p-md-5 mx-md-4">
                         <div className="text-center mt-2 mb-2">
                           <a
-                            href="#"
+                            href="https://www.jltcabz.com/Default.aspx"
                             className="d-inline-block auth-logo"
                             style={{
                               marginBottom: "30px",
