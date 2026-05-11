@@ -136,7 +136,9 @@ export const ManageAppUser = () => {
                                   (currentPage - 1) * entriesPerPage + index + 1,
                                 profileImage: (
                                   <img
-                                    src={item.proFileImage || allImages.defaultprofile}
+                                    src={  item.proFileImage
+          ? `https://4.nxtai.dev/${item.proFileImage}`
+          : allImages.defaultprofile}
                                     alt="Profile"
                                     className="profile-img"
                                   />
