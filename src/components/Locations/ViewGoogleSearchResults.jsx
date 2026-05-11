@@ -73,49 +73,55 @@ export const ViewGoogleSearchResult = () => {
   }, []);
 
   // FETCH DATA
-  const fetchData = async () => {
+ const fetchData = async () => {
 
-    try {
+  try {
 
-      setLoading(true);
+    setLoading(true);
 
-      const formatDate = (date) => {
+    const formatDate = (date) => {
 
-        if (!date) return null;
+      if (!date) return null;
 
-        const d = new Date(date);
+      const d = new Date(date);
 
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
 
-        return `${year}-${month}-${day}`;
-      };
+      return `${year}-${month}-${day}`;
+    };
 
-      const formattedFromDate = formatDate(fromDate);
-      const formattedToDate = formatDate(toDate);
+    const formattedFromDate = formatDate(fromDate);
+    const formattedToDate = formatDate(toDate);
 
-      const response = await getAllSearchResults(
-        formattedFromDate,
-        formattedToDate
-      );
+    const response = await getAllSearchResults(
+      formattedFromDate,
+      formattedToDate
+    );
 
-      if (response?.isSuccess) {
+    if (response?.isSuccess) {
 
-        setData(response.result || []);
+      setData(response.result || []);
 
-      }
+    } else {
 
-    } catch (error) {
-
-      handleErrors(error);
-
-    } finally {
-
-      setLoading(false);
+      setData([]);
 
     }
-  };
+
+  } catch (error) {
+
+    setData([]);
+
+    handleErrors(error);
+
+  } finally {
+
+    setLoading(false);
+
+  }
+};
 
   // EXPORT EXCEL
   const exportToExcel = () => {
