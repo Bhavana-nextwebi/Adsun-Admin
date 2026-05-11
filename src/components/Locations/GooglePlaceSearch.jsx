@@ -229,41 +229,47 @@ export const GooglePlaceSearch = () => {
             
             
 
-              {/* LATITUDE */}
-              <div className="col-lg-3 col-md-6 col-12">
-                <label className="form-label fw-semibold">
-                  Latitude
-                </label>
+            {/* LATITUDE */}
+<div className="col-lg-3 col-md-6 col-12">
+  <label className="form-label fw-semibold">
+    Latitude
+  </label>
 
-                <input
-                  type="text"
-                  className="form-control shadow-sm"
-                  value={latitude || ""}
-                  readOnly
-                />
+  <input
+    type="text"
+    className="form-control shadow-sm"
+    value={latitude}
+    onChange={(e) =>
+      setLatitude(e.target.value)
+    }
+    placeholder="Enter Latitude"
+  />
 
-                <small className="text-danger">
-                  {formErrors.latitude}
-                </small>
-              </div>
+  <small className="text-danger">
+    {formErrors.latitude}
+  </small>
+</div>
 
-              {/* LONGITUDE */}
-              <div className="col-lg-3 col-md-6 col-12">
-                <label className="form-label fw-semibold">
-                  Longitude
-                </label>
+{/* LONGITUDE */}
+<div className="col-lg-3 col-md-6 col-12">
+  <label className="form-label fw-semibold">
+    Longitude
+  </label>
 
-                <input
-                  type="text"
-                  className="form-control shadow-sm"
-                  value={longitude || ""}
-                  readOnly
-                />
+  <input
+    type="text"
+    className="form-control shadow-sm"
+    value={longitude}
+    onChange={(e) =>
+      setLongitude(e.target.value)
+    }
+    placeholder="Enter Longitude"
+  />
 
-                <small className="text-danger">
-                  {formErrors.longitude}
-                </small>
-              </div>
+  <small className="text-danger">
+    {formErrors.longitude}
+  </small>
+</div>
 
               {/* RESET */}
               <div className="col-3">
