@@ -461,77 +461,419 @@ export const ViewGoogleSearchResult = () => {
 
                       </thead>
 
-                      <tbody>
+                     <tbody>
 
-                        {currentData.length === 0 ? (
+  {currentData.length === 0 ? (
 
-                          <TableDataStatusError colspan="12" />
+    <TableDataStatusError colspan="12" />
 
-                        ) : (
+  ) : (
 
-                          currentData.map((item, index) => (
+    currentData.map((item, index) => (
 
-                            <tr key={item.id}>
+      <tr
+        key={item.id}
+        style={{
+          transition: '0.2s ease'
+        }}
+      >
 
-                              <td className="text-center" style={tdStyle}>
-                                {(currentPage - 1) * entriesPerPage + index + 1}
-                              </td>
+        {/* SL NO */}
+        <td
+          className="text-center"
+          style={tdStyle}
+        >
+          {(currentPage - 1) * entriesPerPage + index + 1}
+        </td>
 
-                              <td style={tdStyle}>
-                                {item.title || 'Business name unavailable'}
-                              </td>
+        {/* BUSINESS NAME */}
+        <td style={tdStyle}>
 
-                              <td style={tdStyle}>
-                                {item.type || 'Not Specified'}
-                              </td>
+          <div
+            style={{
+              fontWeight: '600',
+              color: '#111827',
+              fontSize: '12px'
+            }}
+          >
+            {item.title || 'Business name unavailable'}
+          </div>
 
-                              <td style={tdStyle}>
-                                {item.address || 'Address unavailable'}
-                              </td>
+        </td>
 
-                              <td style={tdStyle}>
-                                {item.phone || 'No mobile number'}
-                              </td>
+        {/* CATEGORY */}
+        <td style={tdStyle}>
 
-                              <td style={tdStyle}>
-                                {item.email || 'Email unavailable'}
-                              </td>
+          {item.type ? (
 
-                              <td style={tdStyle}>
-                                {item.priceDesc || 'Not Mentioned'}
-                              </td>
+            <span
+              className="badge rounded-pill"
+              style={{
+                background: '#F3F4F6',
+                color: '#374151',
+                fontWeight: '500',
+                fontSize: '11px',
+                padding: '6px 10px'
+              }}
+            >
+              {item.type}
+            </span>
 
-                              <td style={tdStyle}>
-                                {item.rating || 'No Ratings'}
-                              </td>
+          ) : (
 
-                              <td style={tdStyle}>
-                                {item.review || 'No Reviews'}
-                              </td>
+            <span className="text-muted">
+              Not Specified
+            </span>
 
-                              <td style={tdStyle}>
-                                {item.hours || 'Hours unavailable'}
-                              </td>
+          )}
 
-                              <td style={tdStyle}>
-                                {item.latitude && item.longitude
-                                  ? `Lat: ${item.latitude}, Lng: ${item.longitude}`
-                                  : 'Coordinates unavailable'}
-                              </td>
+        </td>
 
-                              <td style={tdStyle}>
-                                {item.addedOn
-                                  ? new Date(item.addedOn).toLocaleString()
-                                  : 'Date unavailable'}
-                              </td>
+        {/* ADDRESS */}
+        <td
+          style={{
+            ...tdStyle,
+            whiteSpace: 'normal',
+            minWidth: '260px'
+          }}
+        >
 
-                            </tr>
+          <div
+            className="d-flex align-items-start gap-2"
+          >
 
-                          ))
+            <i
+              className="ri-map-pin-2-fill mt-1"
+              style={{
+                color: '#DC2626',
+                fontSize: '14px'
+              }}
+            ></i>
 
-                        )}
+            <span>
+              {item.address || 'Address unavailable'}
+            </span>
 
-                      </tbody>
+          </div>
+
+        </td>
+
+        {/* MOBILE NUMBER */}
+        <td
+          style={{
+            ...tdStyle,
+            whiteSpace: 'nowrap',
+            minWidth: '180px'
+          }}
+        >
+
+          {item.phone ? (
+
+            <div
+              className="d-flex align-items-center gap-2"
+            >
+
+              <i
+                className="ri-phone-fill"
+                style={{
+                  color: '#16A34A',
+                  fontSize: '14px'
+                }}
+              ></i>
+
+              <span
+                style={{
+                  fontWeight: '500'
+                }}
+              >
+                {item.phone}
+              </span>
+
+            </div>
+
+          ) : (
+
+            <span className="text-muted">
+              No mobile number
+            </span>
+
+          )}
+
+        </td>
+
+        {/* EMAIL */}
+        <td
+          style={{
+            ...tdStyle,
+            minWidth: '220px'
+          }}
+        >
+
+          {item.email ? (
+
+            <div
+              className="d-flex align-items-center gap-2"
+            >
+
+              <i
+                className="ri-mail-fill"
+                style={{
+                  color: '#2563EB',
+                  fontSize: '14px'
+                }}
+              ></i>
+
+              <span>
+                {item.email}
+              </span>
+
+            </div>
+
+          ) : (
+
+            <span className="text-muted">
+              Email unavailable
+            </span>
+
+          )}
+
+        </td>
+
+        {/* PRICE */}
+        <td style={tdStyle}>
+
+          {item.priceDesc ? (
+
+            <span
+              className="badge rounded-pill"
+              style={{
+                background: '#FEF3C7',
+                color: '#92400E',
+                fontWeight: '600',
+                fontSize: '11px',
+                padding: '6px 10px'
+              }}
+            >
+              {item.priceDesc}
+            </span>
+
+          ) : (
+
+            <span className="text-muted">
+              Not Mentioned
+            </span>
+
+          )}
+
+        </td>
+
+        {/* RATING */}
+        <td style={tdStyle}>
+
+          {item.rating ? (
+
+            <div
+              className="d-inline-flex align-items-center gap-1 px-2 py-1 rounded-pill"
+              style={{
+                background: '#ECFDF5',
+                color: '#065F46',
+                fontWeight: '600',
+                fontSize: '11px'
+              }}
+            >
+
+              <i className="ri-star-fill"></i>
+
+              {item.rating}
+
+            </div>
+
+          ) : (
+
+            <span
+              className="badge bg-light text-muted border"
+              style={{
+                fontSize: '11px',
+                fontWeight: '500'
+              }}
+            >
+              No Ratings
+            </span>
+
+          )}
+
+        </td>
+
+        {/* REVIEWS */}
+        <td style={tdStyle}>
+
+          {item.review ? (
+
+            <div
+              className="d-inline-flex align-items-center gap-1 px-2 py-1 rounded-pill"
+              style={{
+                background: '#EFF6FF',
+                color: '#1D4ED8',
+                fontWeight: '600',
+                fontSize: '11px'
+              }}
+            >
+
+              <i className="ri-chat-3-fill"></i>
+
+              {item.review} Reviews
+
+            </div>
+
+          ) : (
+
+            <span
+              className="badge bg-light text-muted border"
+              style={{
+                fontSize: '11px',
+                fontWeight: '500'
+              }}
+            >
+              No Reviews
+            </span>
+
+          )}
+
+        </td>
+
+        {/* WORKING HOURS */}
+        <td
+          style={{
+            ...tdStyle,
+            minWidth: '180px',
+            whiteSpace: 'normal'
+          }}
+        >
+
+          {item.hours ? (
+
+            <div
+              className="d-flex align-items-start gap-2"
+            >
+
+              <i
+                className="ri-time-fill mt-1"
+                style={{
+                  color: '#7C3AED',
+                  fontSize: '14px'
+                }}
+              ></i>
+
+              <span>
+                {item.hours}
+              </span>
+
+            </div>
+
+          ) : (
+
+            <span className="text-muted">
+              Hours unavailable
+            </span>
+
+          )}
+
+        </td>
+
+        {/* COORDINATES */}
+        <td
+          style={{
+            ...tdStyle,
+            minWidth: '200px'
+          }}
+        >
+
+          {item.latitude && item.longitude ? (
+
+            <div
+              className="d-flex flex-column"
+              style={{
+                fontSize: '11px'
+              }}
+            >
+
+              <span>
+                <strong>Lat:</strong> {item.latitude}
+              </span>
+
+              <span>
+                <strong>Lng:</strong> {item.longitude}
+              </span>
+
+            </div>
+
+          ) : (
+
+            <span className="text-muted">
+              Coordinates unavailable
+            </span>
+
+          )}
+
+        </td>
+
+        {/* ADDED ON */}
+        <td
+          style={{
+            ...tdStyle,
+            minWidth: '180px'
+          }}
+        >
+
+          {item.addedOn ? (
+
+            <div
+              className="d-flex align-items-start gap-2"
+            >
+
+              <i
+                className="ri-calendar-2-fill mt-1"
+                style={{
+                  color: '#EA580C',
+                  fontSize: '14px'
+                }}
+              ></i>
+
+              <div>
+
+                <div
+                  style={{
+                    fontWeight: '500'
+                  }}
+                >
+                  {new Date(item.addedOn).toLocaleDateString()}
+                </div>
+
+                <small className="text-muted">
+                  {new Date(item.addedOn).toLocaleTimeString()}
+                </small>
+
+              </div>
+
+            </div>
+
+          ) : (
+
+            <span className="text-muted">
+              Date unavailable
+            </span>
+
+          )}
+
+        </td>
+
+      </tr>
+
+    ))
+
+  )}
+
+</tbody>
 
                     </table>
 
