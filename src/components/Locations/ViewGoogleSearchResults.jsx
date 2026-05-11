@@ -441,7 +441,7 @@ export const ViewGoogleSearchResult = () => {
 
                           <th width="350" style={thStyle}>Address</th>
 
-                          <th width="180" style={thStyle}>Mobile No</th>
+                          <th width="250" style={thStyle}>Mobile No</th>
 
                           <th width="240" style={thStyle}>Email Address</th>
 
