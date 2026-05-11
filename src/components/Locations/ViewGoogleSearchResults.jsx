@@ -4,6 +4,9 @@ import Flatpickr from 'react-flatpickr';
 
 import 'flatpickr/dist/themes/material_blue.css';
 
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
+
 import {
   getAllSearchResults
 } from '../../services/gooogleSearchService';
@@ -62,10 +65,13 @@ export const ViewGoogleSearchResult = () => {
   }, [pageAccessData, navigate]);
 
   // INITIAL LOAD
-useEffect(() => {
-   fetchData();
-   // eslint-disable-next-line
-}, []);
+  useEffect(() => {
+
+    fetchData();
+
+    // eslint-disable-next-line
+  }, []);
+
   // FETCH DATA
   const fetchData = async () => {
 
@@ -111,7 +117,74 @@ useEffect(() => {
     }
   };
 
+  // EXPORT EXCEL
+  const exportToExcel = () => {
 
+    if (filteredData.length === 0) return;
+
+    const excelData = filteredData.map((item, index) => ({
+
+      'SL No': index + 1,
+
+      'Business Name': item.title || 'Business name unavailable',
+
+      'Category': item.type || 'Not Specified',
+
+      'Address': item.address || 'Address unavailable',
+
+      'Mobile No': item.phone || 'No mobile number',
+
+      'Email Address': item.email || 'Email unavailable',
+
+      'Price': item.priceDesc || 'Not Mentioned',
+
+      'Rating': item.rating || 'No Ratings',
+
+      'Reviews': item.review || 'No Reviews',
+
+      'Working Hours': item.hours || 'Hours unavailable',
+
+      'Latitude': item.latitude || 'N/A',
+
+      'Longitude': item.longitude || 'N/A',
+
+      'Added Date': item.addedOn
+        ? new Date(item.addedOn).toLocaleDateString()
+        : 'Date unavailable',
+
+      'Added Time': item.addedOn
+        ? new Date(item.addedOn).toLocaleTimeString()
+        : 'Time unavailable'
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+      workbook,
+      worksheet,
+      'Google Search Results'
+    );
+
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: 'xlsx',
+      type: 'array'
+    });
+
+    const fileData = new Blob(
+      [excelBuffer],
+      {
+        type:
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8'
+      }
+    );
+
+    saveAs(
+      fileData,
+      `Google_Search_Results_${new Date().getTime()}.xlsx`
+    );
+  };
 
   // SEARCH FILTER
   const filteredData = data.filter((item) =>
@@ -141,23 +214,21 @@ useEffect(() => {
 
   };
 
+  const thStyle = {
+    fontSize: '14px',
+    fontWeight: '700',
+    color: '#1F2937',
+    verticalAlign: 'middle'
+  };
 
-const thStyle = {
-  fontSize: '14px',
-  fontWeight: '700',
-  color: '#1F2937',
-  verticalAlign: 'middle'
-};
+  const tdStyle = {
+    fontSize: '12px',
+    fontWeight: '300',
+    color: '#310800',
+    lineHeight: '1.5',
+    verticalAlign: 'middle'
+  };
 
-const tdStyle = {
-  fontSize: '12px',
-  fontWeight: '300',
-  color: '#310800',
-  lineHeight:'1.5',
-  verticalAlign:'middle'
-  
-  
-};
   return (
     <>
       {pageAccessDetails.viewAccess ? (
@@ -166,427 +237,312 @@ const tdStyle = {
 
           <div className="col-12">
 
-            {/* FILTER CARD */}
-        {/* FILTER SECTION */}
-<div className="card mb-4">
-
-  <div className="card-body">
-
-    <div className="row g-3 align-items-end">
-
-      {/* ENTRIES */}
-      <div className="col-lg-2 col-md-3">
-
-        <label className="form-label fw-semibold text-dark mb-2">
-        
-        </label>
-
-        <EntriesDropdown
-          entriesPerPage={entriesPerPage}
-          onEntriesChange={handleEntriesChange}
-          options={[10, 25, 50, 100]}
-        />
-
-      </div>
-
-      {/* SEARCH */}
-      <div className="col-lg-4 col-md-9">
-
-        <label className="form-label fw-semibold text-dark mb-2">
-       
-        </label>
-
-        <div className="input-group">
-
-          <span className="input-group-text bg-white">
-            <i className="ri-search-line"></i>
-          </span>
-
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Search business, address, phone..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
-            style={{
-              height: '45px'
-            }}
-          />
-
-        </div>
-
-      </div>
-
-      {/* FROM DATE */}
-      <div className="col-lg-2 col-md-6">
-
-        <label className="form-label fw-semibold text-dark mb-2">
-        
-        </label>
-
-        <Flatpickr
-          value={fromDate}
-          onChange={(dates) => {
-            setFromDate(dates[0] || null);
-          }}
-          options={{
-            dateFormat: 'd/m/Y',
-            maxDate: toDate || null
-          }}
-          className="form-control"
-          placeholder="Select date"
-          style={{
-            height: '45px'
-          }}
-        />
-
-      </div>
-
-      {/* TO DATE */}
-      <div className="col-lg-2 col-md-6">
-
-        <label className="form-label fw-semibold text-dark mb-2">
-        
-        </label>
-
-        <Flatpickr
-          value={toDate}
-          onChange={(dates) => {
-            setToDate(dates[0] || null);
-          }}
-          options={{
-            dateFormat: 'd/m/Y',
-            minDate: fromDate || null
-          }}
-          className="form-control"
-          placeholder="Select date"
-          style={{
-            height: '45px'
-          }}
-        />
+            {/* FILTER SECTION */}
+            <div className="card mb-4">
+
+              <div className="card-body">
+
+                <div className="row g-3 align-items-end">
+
+                  {/* ENTRIES */}
+                  <div className="col-lg-2 col-md-3">
+
+                    <EntriesDropdown
+                      entriesPerPage={entriesPerPage}
+                      onEntriesChange={handleEntriesChange}
+                      options={[10, 25, 50, 100]}
+                    />
+
+                  </div>
+
+                  {/* SEARCH */}
+                  <div className="col-lg-4 col-md-9">
+
+                    <div className="input-group">
+
+                      <span className="input-group-text bg-white">
+                        <i className="ri-search-line"></i>
+                      </span>
+
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Search business, address, phone..."
+                        value={searchQuery}
+                        onChange={(e) => {
+                          setSearchQuery(e.target.value);
+                          setCurrentPage(1);
+                        }}
+                        style={{
+                          height: '45px'
+                        }}
+                      />
+
+                    </div>
+
+                  </div>
+
+                  {/* FROM DATE */}
+                  <div className="col-lg-2 col-md-6">
+
+                    <Flatpickr
+                      value={fromDate}
+                      onChange={(dates) => {
+                        setFromDate(dates[0] || null);
+                      }}
+                      options={{
+                        dateFormat: 'd/m/Y',
+                        maxDate: toDate || null
+                      }}
+                      className="form-control"
+                      placeholder="From date"
+                      style={{
+                        height: '45px'
+                      }}
+                    />
+
+                  </div>
+
+                  {/* TO DATE */}
+                  <div className="col-lg-2 col-md-6">
+
+                    <Flatpickr
+                      value={toDate}
+                      onChange={(dates) => {
+                        setToDate(dates[0] || null);
+                      }}
+                      options={{
+                        dateFormat: 'd/m/Y',
+                        minDate: fromDate || null
+                      }}
+                      className="form-control"
+                      placeholder="To date"
+                      style={{
+                        height: '45px'
+                      }}
+                    />
+
+                  </div>
+
+                  {/* BUTTONS */}
+                  <div className="col-lg-2 col-md-12">
+
+                    <div className="d-flex gap-2">
+
+                      <button
+                        className="btn btn-primary w-100"
+                        style={{
+                          height: '45px'
+                        }}
+                        onClick={() => {
+                          setCurrentPage(1);
+                          fetchData();
+                        }}
+                      >
+                        <i className="ri-search-line me-1"></i>
+                        Search
+                      </button>
+
+                      <button
+                        className="btn btn-light border"
+                        style={{
+                          height: '45px',
+                          width: '45px'
+                        }}
+                        onClick={() => {
+
+                          setFromDate(null);
+                          setToDate(null);
+                          setSearchQuery('');
+                          setCurrentPage(1);
+
+                          setTimeout(() => {
+                            fetchData();
+                          }, 0);
+
+                        }}
+                      >
+                        <i className="ri-refresh-line"></i>
+                      </button>
+
+                    </div>
+
+                  </div>
 
-      </div>
-
-      {/* BUTTONS */}
-      <div className="col-lg-2 col-md-12">
-
-        <div className="d-flex gap-2">
-
-          {/* SEARCH BUTTON */}
-          <button
-            className="btn btn-primary w-100"
-            style={{
-              height: '45px'
-            }}
-            onClick={() => {
-              setCurrentPage(1);
-              fetchData();
-            }}
-          >
-            <i className="ri-search-line me-1"></i>
-            Search
-          </button>
-
-          {/* RESET BUTTON */}
-          <button
-            className="btn btn-light border"
-            style={{
-              height: '45px',
-              width: '45px'
-            }}
-            onClick={() => {
-
-              setFromDate(null);
-              setToDate(null);
-              setSearchQuery('');
-              setCurrentPage(1);
-
-              setTimeout(() => {
-                fetchData();
-              }, 0);
-
-            }}
-          >
-            <i className="ri-refresh-line"></i>
-          </button>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
-
-</div>
-            {/* TABLE CARD */}
-     {/* TABLE */}
-<div className="card border-0 shadow-sm">
-
-  {/* HEADER */}
-  <div className="card-header bg-white border-bottom py-3 px-3">
-
-    <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
-
-      <div>
-
-        <h5 className="mb-1 fw-bold text-dark">
-          Google Search Results
-        </h5>
-
-        <small className="text-muted">
-          Total Records : {filteredData.length}
-        </small>
-
-      </div>
-
-    </div>
-
-  </div>
-
-  {/* BODY */}
-  <div className="card-body p-0">
-
-    {loading ? (
-
-      <Loading />
-
-    ) : (
-
-      <div className="table-responsive">
-
- 
-
-
-<table
-  className="table table-hover table-bordered align-middle mb-0"
->
-  {/* TABLE HEAD */}
-  <thead
-    className="table-light"
-    style={{
-      whiteSpace: 'nowrap'
-    }}
-  >
-    <tr>
-      <th className="text-center" width="60" style={thStyle}>#</th>
-
-      <th style={thStyle}>Business Name</th>
-
-      <th width="150" style={thStyle}>Category</th>
-
-      <th width="350" style={thStyle}>Address</th>
-
-      <th width="180" style={thStyle}>Mobile No</th>
-
-      <th width="240" style={thStyle}>Email Address</th>
-
-      <th width="120" style={thStyle}>Price</th>
-
-      <th width="140" style={thStyle}>Rating</th>
-
-      <th width="120" style={thStyle}>Reviews</th>
-
-      <th width="180" style={thStyle}>Working Hours</th>
-
-      <th width="180" style={thStyle}>Coordinates</th>
-
-      <th width="180" style={thStyle}>Added On</th>
-    </tr>
-  </thead>
-
-  {/* TABLE BODY */}
-  <tbody>
-    {currentData.length === 0 ? (
-      <TableDataStatusError colspan="12" />
-    ) : (
-      currentData.map((item, index) => (
-        <tr key={item.id}>
-          {/* SERIAL */}
-          <td className="text-center" style={tdStyle}>
-            {(currentPage - 1) * entriesPerPage + index + 1}
-          </td>
-
-          {/* BUSINESS NAME */}
-          <td style={tdStyle}>
-            {item.title || 'Business name unavailable'}
-          </td>
-
-          {/* CATEGORY */}
-          <td style={tdStyle}>
-            {item.type ? (
-              <span
-                className="badge bg-light text-dark border"
-                style={{
-                  fontSize: '10px',
-                  padding: '4px 8px',
-                  borderRadius: '5px',
-                  fontWeight: '500'
-                }}
-              >
-                {item.type}
-              </span>
-            ) : (
-              'Not Specified'
-            )}
-          </td>
-
-          {/* ADDRESS */}
-          <td
-            style={{
-              ...tdStyle,
-              lineHeight: '1.5'
-            }}
-          >
-            {item.address || 'Address unavailable'}
-          </td>
-
-          {/* MOBILE */}
-          <td
-            style={{
-              ...tdStyle,
-              whiteSpace: 'nowrap'
-            }}
-          >
-            {item.phone ? (
-              <div className="d-flex align-items-center gap-2">
-                <div
-                  className="d-flex align-items-center justify-content-center rounded-circle bg-success-subtle"
-                  style={{
-                    width: '24px',
-                    height: '24px',
-                    flexShrink: 0
-                  }}
-                >
-                  <i
-                    className="ri-phone-fill text-success"
-                    style={{
-                      fontSize: '11px'
-                    }}
-                  ></i>
                 </div>
 
-                <span>{item.phone}</span>
               </div>
-            ) : (
-              'No mobile number'
-            )}
-          </td>
 
-          {/* EMAIL */}
-          <td
-            style={{
-              ...tdStyle,
-              wordBreak: 'break-word'
-            }}
-          >
-            {item.email || 'Email unavailable'}
-          </td>
+            </div>
 
-          {/* PRICE */}
-          <td style={tdStyle}>
-            {item.priceDesc ? (
-              <span
-                className="badge bg-success-subtle text-success border"
-                style={{
-                  fontSize: '10px',
-                  padding: '4px 8px',
-                  borderRadius: '5px',
-                  fontWeight: '500'
-                }}
-              >
-                {item.priceDesc}
-              </span>
-            ) : (
-              'Not Mentioned'
-            )}
-          </td>
+            {/* TABLE */}
+            <div className="card border-0 shadow-sm">
 
-          {/* RATING */}
-          <td style={tdStyle}>
-            {item.rating ? (
-              <span
-                className={`badge ${
-                  item.rating >= 4.5
-                    ? 'bg-success'
-                    : item.rating >= 3.5
-                    ? 'bg-warning text-dark'
-                    : 'bg-danger'
-                }`}
-                style={{
-                  fontSize: '10px',
-                  padding: '4px 8px',
-                  borderRadius: '5px',
-                  fontWeight: '500'
-                }}
-              >
-                ⭐ {item.rating}
-              </span>
-            ) : (
-              'No Ratings'
-            )}
-          </td>
+              {/* HEADER */}
+              <div className="card-header bg-white border-bottom py-3 px-3">
 
-          {/* REVIEWS */}
-          <td style={tdStyle}>
-            {item.review || 'No Reviews'}
-          </td>
+                <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
 
-          {/* HOURS */}
-          <td
-            style={{
-              ...tdStyle,
-              lineHeight: '1.4'
-            }}
-          >
-            {item.hours || 'Hours unavailable'}
-          </td>
+                  <div>
 
-          {/* COORDINATES */}
-          <td style={tdStyle}>
-            {item.latitude && item.longitude ? (
-              <div>
-                <div>Lat: {item.latitude}</div>
-                <div>Lng: {item.longitude}</div>
-              </div>
-            ) : (
-              'Coordinates unavailable'
-            )}
-          </td>
+                    <h5 className="mb-1 fw-bold text-dark">
+                      Google Search Results
+                    </h5>
 
-          {/* DATE */}
-          <td style={tdStyle}>
-            {item.addedOn ? (
-              <div>
-                <div>
-                  {new Date(item.addedOn).toLocaleDateString()}
+                    <small className="text-muted">
+                      Total Records : {filteredData.length}
+                    </small>
+
+                  </div>
+
+                  <button
+                    className="btn btn-success d-flex align-items-center gap-2"
+                    onClick={exportToExcel}
+                    disabled={filteredData.length === 0}
+                  >
+                    <i className="ri-file-excel-2-line"></i>
+
+                    Export Excel
+                  </button>
+
                 </div>
 
-                <div>
-                  {new Date(item.addedOn).toLocaleTimeString()}
-                </div>
               </div>
-            ) : (
-              'Date unavailable'
-            )}
-          </td>
-        </tr>
-      ))
-    )}
-  </tbody>
-</table>
 
+              {/* BODY */}
+              <div className="card-body p-0">
 
-      </div>
+                {loading ? (
 
-    )}
+                  <Loading />
 
-  </div>
+                ) : (
 
-</div>
+                  <div className="table-responsive">
+
+                    <table
+                      className="table table-hover table-bordered align-middle mb-0"
+                    >
+
+                      <thead
+                        className="table-light"
+                        style={{
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+
+                        <tr>
+
+                          <th className="text-center" width="60" style={thStyle}>#</th>
+
+                          <th style={thStyle}>Business Name</th>
+
+                          <th width="150" style={thStyle}>Category</th>
+
+                          <th width="350" style={thStyle}>Address</th>
+
+                          <th width="180" style={thStyle}>Mobile No</th>
+
+                          <th width="240" style={thStyle}>Email Address</th>
+
+                          <th width="120" style={thStyle}>Price</th>
+
+                          <th width="140" style={thStyle}>Rating</th>
+
+                          <th width="120" style={thStyle}>Reviews</th>
+
+                          <th width="180" style={thStyle}>Working Hours</th>
+
+                          <th width="180" style={thStyle}>Coordinates</th>
+
+                          <th width="180" style={thStyle}>Added On</th>
+
+                        </tr>
+
+                      </thead>
+
+                      <tbody>
+
+                        {currentData.length === 0 ? (
+
+                          <TableDataStatusError colspan="12" />
+
+                        ) : (
+
+                          currentData.map((item, index) => (
+
+                            <tr key={item.id}>
+
+                              <td className="text-center" style={tdStyle}>
+                                {(currentPage - 1) * entriesPerPage + index + 1}
+                              </td>
+
+                              <td style={tdStyle}>
+                                {item.title || 'Business name unavailable'}
+                              </td>
+
+                              <td style={tdStyle}>
+                                {item.type || 'Not Specified'}
+                              </td>
+
+                              <td style={tdStyle}>
+                                {item.address || 'Address unavailable'}
+                              </td>
+
+                              <td style={tdStyle}>
+                                {item.phone || 'No mobile number'}
+                              </td>
+
+                              <td style={tdStyle}>
+                                {item.email || 'Email unavailable'}
+                              </td>
+
+                              <td style={tdStyle}>
+                                {item.priceDesc || 'Not Mentioned'}
+                              </td>
+
+                              <td style={tdStyle}>
+                                {item.rating || 'No Ratings'}
+                              </td>
+
+                              <td style={tdStyle}>
+                                {item.review || 'No Reviews'}
+                              </td>
+
+                              <td style={tdStyle}>
+                                {item.hours || 'Hours unavailable'}
+                              </td>
+
+                              <td style={tdStyle}>
+                                {item.latitude && item.longitude
+                                  ? `Lat: ${item.latitude}, Lng: ${item.longitude}`
+                                  : 'Coordinates unavailable'}
+                              </td>
+
+                              <td style={tdStyle}>
+                                {item.addedOn
+                                  ? new Date(item.addedOn).toLocaleString()
+                                  : 'Date unavailable'}
+                              </td>
+
+                            </tr>
+
+                          ))
+
+                        )}
+
+                      </tbody>
+
+                    </table>
+
+                  </div>
+
+                )}
+
+              </div>
+
+            </div>
+
             {/* PAGINATION */}
             <div className="mt-3">
 
