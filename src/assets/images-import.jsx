@@ -12,6 +12,8 @@ import DefultImage from "./images/DefultImage.png";
 import Excel from "./images/excel.png";
 import  AdsunLogo from "./images/lister-adsun.png"
 import LocationTrac from "./images/location-trac.jpg"
+import LocationTracNew from "./images/vehicle-gps-location-tracker.jpg"
+import LocationTrackNew from "./images/Location-Tracker-new.jpg"
 const allImages = {
   Excel,
   blankProfile,
@@ -26,7 +28,9 @@ const allImages = {
   DefultImage,
   logoIcon,
   AdsunLogo,
-  LocationTrac
+  LocationTrac,
+  LocationTracNew,
+  LocationTrackNew
 };
 
 export default allImages;

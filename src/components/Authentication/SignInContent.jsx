@@ -89,12 +89,12 @@ export const SignInContent = () => {
                       <div
                         className="p-lg-5 p-4 auth-one-bg"
                         style={{
-                          backgroundImage: `url(${allImages.LocationTrac})`,
+                          backgroundImage: `url(${allImages.LocationTrackNew})`,
                           backgroundPosition: "center",
                           opacity: 0.9,
                           height: "540px",
                           backgroundRepeat: "no-repeat",
-                          backgroundSize: "100%",
+                          backgroundSize:"cover"
                         }}
                       ></div>
                     </div>

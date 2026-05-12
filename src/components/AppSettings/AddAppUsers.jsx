@@ -96,7 +96,8 @@ const AddAppUser = () => {
             MobileNo: userData.mobileNo || '',
             
           }));
-          if (userData.proFileImage) setImageUrl(userData.proFileImage);
+          if (userData.proFileImage) 
+            setImageUrl(`https://4.nxtai.dev/${userData.proFileImage.replace(/^\/+/, "")}`);
         }
       } catch (error) {
         handleErrors(error);

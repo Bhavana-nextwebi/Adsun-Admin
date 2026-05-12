@@ -893,7 +893,6 @@ export const ViewGoogleSearchResult = () => {
 
             {/* PAGINATION */}
             <div className="mt-3">
-
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
