@@ -800,7 +800,7 @@ export const validateCategoryData = (formData) => {
   const errors = {};
 
   if (!formData.categoryName || !formData.categoryName.trim()) {
-    errors.CategoryName = "Category Name is required";
+    errors.categoryName = "Category Name is required";
     valid = false;
   }
 

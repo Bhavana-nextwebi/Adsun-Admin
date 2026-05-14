@@ -147,7 +147,7 @@ export const ManageAppUser = () => {
                                 LastName: item.lastName,
                                 emailId: item.emailId,
                                 MobileNo: item.mobileNo,
-                                addedOn: new Date(item.registeredOn).toLocaleDateString(),
+                                addedOn: new Date(item.createdOn).toLocaleDateString(),
                               }}
                               columns={[
                                 "userId",

@@ -132,7 +132,7 @@ export const ViewGoogleSearchResult = () => {
 
       'SL No': index + 1,
 
-      'Business Name': item.title || 'Business name unavailable',
+      'Search Name': item.title || 'Business name unavailable',
 
       'Category': item.type || 'Not Specified',
 
@@ -441,7 +441,8 @@ export const ViewGoogleSearchResult = () => {
 
                           <th className="text-center" width="60" style={thStyle}>#</th>
 
-                          <th style={thStyle}>Business Name</th>
+                          <th style={thStyle}>UserName</th>
+                          <th style={thStyle}>Search Name</th>
 
                           <th width="150" style={thStyle}>Category</th>
 
@@ -491,7 +492,19 @@ export const ViewGoogleSearchResult = () => {
         >
           {(currentPage - 1) * entriesPerPage + index + 1}
         </td>
+  <td style={tdStyle}>
 
+          <div
+            style={{
+              fontWeight: '600',
+              color: '#111827',
+              fontSize: '12px'
+            }}
+          >
+            {item.userName || 'UserName name unavailable'}
+          </div>
+
+        </td>
         {/* BUSINESS NAME */}
         <td style={tdStyle}>
 

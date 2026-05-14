@@ -18,8 +18,6 @@ import { ProfilePage } from "../pages/profilePage";
 import { ChangePassword } from "../pages/ChangePassword";
 import { DashboardPage } from "../pages/dashboardPage";
 import { Navigate } from "react-router-dom";
-import { BlogsAdd } from "../pages/BlogsAdd";
-import { BlogsManage } from "../pages/BlogsManage";
 import { PageGroup } from "../pages/PageGroup";
 import { PageMaster } from "../pages/PageMaster";
 import { CreateRoles } from "../pages/CreateRoles";
@@ -29,13 +27,14 @@ import { NewUserView } from "../pages/NewUserView";
 import { NewUserUpdate } from "../pages/NewUserUpdate";
 import { UserDashboardPage } from "../pages/UserDashboardPage";
 import { Category } from "../pages/Category";
-import { AppUserAdd
- } from "../pages/AppUserAdd";
- import { AppUserManage } from "../pages/AppUserManage";
-import {GoogleSearchPage} from "../pages/GoogleSearchPage";
-import {SearchLocationPage} from "../pages/SearchLocationPage";
+import { AppUserAdd } from "../pages/AppUserAdd";
+import { AppUserManage } from "../pages/AppUserManage";
+import { GoogleSearchPage } from "../pages/GoogleSearchPage";
+import { SearchLocationPage } from "../pages/SearchLocationPage";
 import { AllLocations } from "../pages/AllLocations";
-
+import { GooglePlaceResultsSearch } from "../pages/GooglePlaceResultsSearch";
+import { SavedSearchListPage } from "../pages/SavedSearchListPage";
+import { SearchResultPage } from "../pages/SearchResultPage";
 
 const routes = [
   {
@@ -55,8 +54,6 @@ const routes = [
         element: <ManageAccessPage />,
       },
 
-
-
       // routing for user management
       { path: "user", element: <NewUserView /> },
       {
@@ -67,23 +64,27 @@ const routes = [
         ],
       },
       {
-        path:"app-user",
-        children:[
-          {path:"",element:<AppUserManage/>},
-          {path:"add",element:<AppUserAdd/>},
-          {path:"add/:id",element:<AppUserAdd/>}
-
-        ]
+        path: "app-user",
+        children: [
+          { path: "", element: <AppUserManage /> },
+          { path: "add", element: <AppUserAdd /> },
+          { path: "add/:id", element: <AppUserAdd /> },
+        ],
       },
-{
-  path: "google-search",
-  children: [
-    { path: "", element: <GoogleSearchPage /> },
-    {path:"search" ,element:<SearchLocationPage/>},
-    {path:"locations",element:<AllLocations/>}
-  ],
-},
-      
+
+      // routing for google search
+      {
+        path: "google-search",
+        children: [
+          { path: "", element: <GoogleSearchPage /> },
+          { path: "search", element: <SearchLocationPage /> },
+          { path: "locations", element: <AllLocations /> },
+          { path:  "search-results/:searchId", element: <GooglePlaceResultsSearch /> },
+          { path: "savedsearch", element: <SavedSearchListPage /> },
+          { path: "place-results", element: <SearchResultPage /> },
+        ],
+      },
+
       // routing for master settings
       { path: "category-master", element: <Category /> },
 
@@ -91,16 +92,6 @@ const routes = [
       { path: "user-dashboard", element: <UserDashboardPage /> },
       { path: "my-profile", element: <ProfilePage /> },
       { path: "change-password", element: <ChangePassword /> },
-
-      // routing for blog management
-      { path: "blogs", element: <BlogsManage /> },
-      {
-        path: "blogs",
-        children: [
-          { path: "add", element: <BlogsAdd /> },
-          { path: "update/:id", element: <BlogsAdd /> },
-        ],
-      },
     ],
   },
 

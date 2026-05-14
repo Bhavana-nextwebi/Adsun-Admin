@@ -10,39 +10,65 @@ import { usePageLevelAccess } from "../../hooks/usePageLevelAccess";
 import {
   useNavigate,
   useLocation,
+    useParams
 } from "react-router-dom";
 
 export const GooglePlaceSearch = () => {
   const [categories, setCategories] = useState([]);
 
   // CATEGORY
-  const [searchText, setSearchText] = useState("");
+  const [searchText, setSearchText] =
+    useState("");
 
   // AUTO FILLED FROM NAVIGATION
-  const [latitude, setLatitude] = useState("");
-  const [longitude, setLongitude] = useState("");
+  const [latitude, setLatitude] =
+    useState("");
+
+  const [longitude, setLongitude] =
+    useState("");
+
+  // USER DETAILS
+  const [userDetails, setUserDetails] =
+    useState(null);
+
+
 
   // DISPLAY IN KM
-  const [radiusKm, setRadiusKm] = useState("1");
+  const [radiusKm, setRadiusKm] =
+    useState("1");
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [formErrors, setFormErrors] = useState({});
+  const [isLoading, setIsLoading] =
+    useState(false);
+
+  const [formErrors, setFormErrors] =
+    useState({});
 
   const navigate = useNavigate();
-  const routeLocation = useLocation();
+
+  const routeLocation =
+    useLocation();
 
   const { pageAccessData } =
-    usePageLevelAccess("google-search/add");
+    usePageLevelAccess(
+      "google-search/add"
+    );
 
+    const userGuid = routeLocation.state?.userDetails?.userGuid;
+const shareId = routeLocation.state?.userDetails?.shareId;
   // PAGE ACCESS
   useEffect(() => {
     if (
       pageAccessData &&
       !pageAccessData.viewAccess
     ) {
-      navigate("/404-error-page");
+      navigate(
+        "/404-error-page"
+      );
     }
-  }, [pageAccessData, navigate]);
+  }, [
+    pageAccessData,
+    navigate
+  ]);
 
   // LOAD CATEGORY DATA
   useEffect(() => {
@@ -54,26 +80,41 @@ export const GooglePlaceSearch = () => {
       const response =
         await getAllCategories();
 
-      if (response?.isSuccess) {
-        setCategories(response.result || []);
+      if (
+        response?.isSuccess
+      ) {
+        setCategories(
+          response.result || []
+        );
       }
     } catch (error) {
       handleErrors(error);
     }
   };
 
-  // AUTO POPULATE LAT/LNG
+  // AUTO POPULATE LAT/LNG + USER DETAILS
   useEffect(() => {
-    if (routeLocation.state) {
+    if (
+      routeLocation.state
+    ) {
       setLatitude(
-        routeLocation.state.latitude || ""
+        routeLocation.state
+          .latitude || ""
       );
 
       setLongitude(
-        routeLocation.state.longitude || ""
+        routeLocation.state
+          .longitude || ""
+      );
+
+      setUserDetails(
+        routeLocation.state
+          .userDetails || null
       );
     }
-  }, [routeLocation.state]);
+  }, [
+    routeLocation.state
+  ]);
 
   // VALIDATION
   const validate = () => {
@@ -103,45 +144,78 @@ export const GooglePlaceSearch = () => {
   };
 
   // SEARCH
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    const errors = validate();
+  const errors = validate();
+  setFormErrors(errors);
 
-    setFormErrors(errors);
+  if (Object.keys(errors).length > 0) return;
 
-    if (Object.keys(errors).length > 0)
-      return;
+  const radiusInMeters = Number(radiusKm) * 1000;
+  const location = `@${latitude},${longitude},${radiusInMeters}m`;
 
-    // KM TO METERS
-    const radiusInMeters =
-      Number(radiusKm) * 1000;
+  try {
+    setIsLoading(true);
 
-    const location = `@${latitude},${longitude},${radiusInMeters}m`;
+    const response = await searchPlaces({
+      userGuid,
+      shareId,
+      searchText,
+      location,
+    });
 
-    try {
-      setIsLoading(true);
+    if (response?.isSuccess) {
+      toast.success("Search completed successfully!");
 
-      const response =
-        await searchPlaces({
-          searchText,
-          location,
-        });
+      // ❌ DO NOT pass results here
+     navigate("/google-search/savedsearch", {
+  state: {
+    userGuid,
 
-      if (response?.isSuccess) {
-        toast.success(
-          "Search completed successfully!"
-        );
-
-        navigate("/google-search/search");
-      }
-    } catch (error) {
-      handleErrors(error);
-    } finally {
-      setIsLoading(false);
+    highlightCriteria: {
+      category: searchText,
+      latitude: Number(latitude),
+      longitude: Number(longitude),
+      radiusKm: Number(radiusKm),
+      radiusMeters: Number(radiusKm) * 1000
     }
-  };
+  }
+});
+    }
+  } catch (error) {
+    const status = error?.response?.status;
 
+    if (status === 409) {
+      toast.warning(
+        error?.response?.data?.message ||
+          "Search already completed"
+      );
+
+      setTimeout(() => {
+    navigate("/google-search/savedsearch", {
+  state: {
+    userGuid,
+
+    highlightCriteria: {
+      category: searchText,
+      latitude: Number(latitude),
+      longitude: Number(longitude),
+      radiusKm: Number(radiusKm),
+      radiusMeters: Number(radiusKm) * 1000
+    }
+  }
+});
+      }, 2000);
+
+      return;
+    }
+
+    handleErrors(error);
+  } finally {
+    setIsLoading(false);
+  }
+};
   // RESET
   const handleReset = () => {
     setSearchText("");
@@ -151,7 +225,9 @@ export const GooglePlaceSearch = () => {
 
   return (
     <div className="container-fluid py-3">
-      <ComponentHeader title="Google Places Search" />
+      <ComponentHeader
+        title="Google Places Search"
+      />
 
       <div className="card shadow-sm border-0">
         <div className="card-header bg-white">
@@ -161,7 +237,11 @@ export const GooglePlaceSearch = () => {
         </div>
 
         <div className="card-body">
-          <form onSubmit={handleSubmit}>
+          <form
+            onSubmit={
+              handleSubmit
+            }
+          >
             <div className="row g-3">
 
               {/* CATEGORY */}
@@ -172,29 +252,47 @@ export const GooglePlaceSearch = () => {
 
                 <select
                   className="form-select shadow-sm"
-                  value={searchText}
-                  onChange={(e) =>
+                  value={
+                    searchText
+                  }
+                  onChange={(
+                    e
+                  ) =>
                     setSearchText(
-                      e.target.value
+                      e.target
+                        .value
                     )
                   }
                 >
                   <option value="">
-                    Select Category
+                    Select
+                    Category
                   </option>
 
-                  {categories.map((c) => (
-                    <option
-                      key={c.id}
-                      value={c.categoryName}
-                    >
-                      {c.categoryName}
-                    </option>
-                  ))}
+                  {categories.map(
+                    (
+                      c
+                    ) => (
+                      <option
+                        key={
+                          c.id
+                        }
+                        value={
+                          c.categoryName
+                        }
+                      >
+                        {
+                          c.categoryName
+                        }
+                      </option>
+                    )
+                  )}
                 </select>
 
                 <small className="text-danger">
-                  {formErrors.searchText}
+                  {
+                    formErrors.searchText
+                  }
                 </small>
               </div>
 
@@ -208,10 +306,15 @@ export const GooglePlaceSearch = () => {
                   <input
                     type="number"
                     className="form-control"
-                    value={radiusKm}
-                    onChange={(e) =>
+                    value={
+                      radiusKm
+                    }
+                    onChange={(
+                      e
+                    ) =>
                       setRadiusKm(
-                        e.target.value
+                        e.target
+                          .value
                       )
                     }
                   />
@@ -222,71 +325,94 @@ export const GooglePlaceSearch = () => {
                 </div>
 
                 <small className="text-danger">
-                  {formErrors.radiusKm}
+                  {
+                    formErrors.radiusKm
+                  }
                 </small>
               </div>
 
-            
-            
+              {/* LATITUDE */}
+              <div className="col-lg-3 col-md-6 col-12">
+                <label className="form-label fw-semibold">
+                  Latitude
+                </label>
 
-            {/* LATITUDE */}
-<div className="col-lg-3 col-md-6 col-12">
-  <label className="form-label fw-semibold">
-    Latitude
-  </label>
+                <input
+                  type="text"
+                  className="form-control shadow-sm"
+                  value={
+                    latitude
+                  }
+                  onChange={(
+                    e
+                  ) =>
+                    setLatitude(
+                      e.target
+                        .value
+                    )
+                  }
+                  placeholder="Enter Latitude"
+                />
 
-  <input
-    type="text"
-    className="form-control shadow-sm"
-    value={latitude}
-    onChange={(e) =>
-      setLatitude(e.target.value)
-    }
-    placeholder="Enter Latitude"
-  />
+                <small className="text-danger">
+                  {
+                    formErrors.latitude
+                  }
+                </small>
+              </div>
 
-  <small className="text-danger">
-    {formErrors.latitude}
-  </small>
-</div>
+              {/* LONGITUDE */}
+              <div className="col-lg-3 col-md-6 col-12">
+                <label className="form-label fw-semibold">
+                  Longitude
+                </label>
 
-{/* LONGITUDE */}
-<div className="col-lg-3 col-md-6 col-12">
-  <label className="form-label fw-semibold">
-    Longitude
-  </label>
+                <input
+                  type="text"
+                  className="form-control shadow-sm"
+                  value={
+                    longitude
+                  }
+                  onChange={(
+                    e
+                  ) =>
+                    setLongitude(
+                      e.target
+                        .value
+                    )
+                  }
+                  placeholder="Enter Longitude"
+                />
 
-  <input
-    type="text"
-    className="form-control shadow-sm"
-    value={longitude}
-    onChange={(e) =>
-      setLongitude(e.target.value)
-    }
-    placeholder="Enter Longitude"
-  />
-
-  <small className="text-danger">
-    {formErrors.longitude}
-  </small>
-</div>
+                <small className="text-danger">
+                  {
+                    formErrors.longitude
+                  }
+                </small>
+              </div>
 
               {/* RESET */}
               <div className="col-3">
                 <button
                   type="button"
                   className="btn btn-outline-secondary shadow-sm"
-                  onClick={handleReset}
+                  onClick={
+                    handleReset
+                  }
                 >
                   <i className="fa fa-refresh me-2"></i>
                   Reset
                 </button>
               </div>
-               <div className="col-3">
+
+              {/* SEARCH */}
+              <div className="col-3">
                 <button
                   type="submit"
                   className="btn btn-primary w-100 shadow-sm"
-                  disabled={isLoading}
+                  disabled={
+                    isLoading
+                  }
                 >
                   {isLoading ? (
                     <>

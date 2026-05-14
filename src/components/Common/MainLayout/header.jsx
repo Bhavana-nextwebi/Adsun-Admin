@@ -65,17 +65,17 @@ const Header = () => {
             <div className="d-flex">
               <div className="navbar-brand-box horizontal-logo">
                 <span className="logo-sm">
-                  <img src={allImages.logoSm} alt="" height="80" />
+                  <img src={allImages.AdsunLogo} alt="" height="50" />
                 </span>
                 <span className="logo-lg">
-                  <img src={allImages.logoDark} alt="" height="100" />
+                  <img src={allImages.AdsunLogo} alt="" height="100" />
                 </span>
 
                 <span className="logo-sm">
-                  <img src={allImages.logoSm} alt="" height="80" />
+                  <img src={allImages.AdsunLogo} alt="" height="80" />
                 </span>
                 <span className="logo-lg">
-                  <img src={allImages.logoLight} alt="" height="100" />
+                  <img src={allImages.AdsunLogo} alt="" height="100" />
                 </span>
               </div>
 

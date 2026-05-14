@@ -51,8 +51,6 @@ export const GetAllLocations = () => {
     }
   };
 
-  
-
   const filteredData = data.filter((item) => {
     const query = searchQuery.toLowerCase();
 
@@ -122,6 +120,7 @@ export const GetAllLocations = () => {
     "City",
     "State",
     "Country",
+    "Area",
     "Coordinates",
     "Added On",
     "Action",
@@ -146,6 +145,7 @@ export const GetAllLocations = () => {
                                 <td>{item.city}</td>
                                 <td>{item.state}</td>
                                 <td>{item.country}</td>
+                                <td>{item.area}</td>
 
                                 <td style={{ minWidth: '160px' }}>
                                   <div>Lat: {lat}</div>
@@ -157,21 +157,40 @@ export const GetAllLocations = () => {
                                     ? new Date(item.addedOn).toLocaleString()
                                     : '-'}
                                 </td>
-                                 <td>
+  
+    <td>
   <button
     className="btn btn-sm btn-primary"
-    onClick={() =>
-      navigate("/google-search/search", {
-        state: {
-          latitude: lat,
-          longitude: lng,
-        },
-      })
-    }
+    onClick={() => {
+      const coords = item.jioCoOrdinate || "";
+      const [latitude, longitude] = coords.split(",").map(x => x.trim());
+
+   navigate(`/google-search/search`, {
+  state: {
+    userDetails: {
+      userGuid: item.userGuid,
+      shareId: item.id,
+      userName: item.userName,
+      city: item.city,
+      state: item.state,
+      country: item.country,
+      area: item.area,
+      status: item.status,
+      addedOn: item.addedOn,
+    },
+
+    // ✅ OUTSIDE userDetails
+    latitude: latitude,
+    longitude: longitude,
+  },
+});
+    }}
   >
     Search
   </button>
 </td>
+  
+  
                                 <td>
                                   <span
                                     className={`badge ${

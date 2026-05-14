@@ -42,7 +42,7 @@ export const Navbar = () => {
       <div className="navbar-brand-box">
         <a href="/" className="logo logo-dark">
           <span className="logo-sm">
-            <img src={allImages.AdsunLogo} alt="" height="50" />
+            <img src={allImages.AdsunLogo} alt="" height="30" />
           </span>
           <span className="logo-lg">
             <img src={allImages.AdsunLogo} alt="" height="80" />
