@@ -126,15 +126,7 @@ const Header = () => {
                                 </div>
                             </div> */}
 
-              <div className="ms-1 header-item d-sm-flex">
-                <button
-                  type="button"
-                  onClick={toggleTheme}
-                  className="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle light-dark-mode shadow-none"
-                >
-                  <i className="bx bx-moon fs-22"></i>
-                </button>
-              </div>
+          
 
               <div className="dropdown ms-sm-3 header-item topbar-user">
                 <button
