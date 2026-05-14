@@ -20,28 +20,8 @@ const Header = () => {
   };
 
   const { handlenavbarClick, isClass } = useNavbarToggle();
-  const [theme, setTheme] = useState("light");
 
-  const toggleTheme = () => {
-    setTheme((prevTheme) => {
-      const newTheme = prevTheme === "light" ? "dark" : "light";
-      Cookies.set("theme", newTheme);
-      return newTheme;
-    });
-  };
 
-  useEffect(() => {
-    const storedTheme = Cookies.get("theme");
-    if (storedTheme) {
-      setTheme(storedTheme);
-    }
-    document.documentElement.setAttribute("data-layout-mode", theme);
-    document.documentElement.classList.remove(
-      "layout-mode-light",
-      "layout-mode-dark"
-    );
-    document.documentElement.classList.add(`layout-mode-${theme}`);
-  }, [theme]);
 
   useEffect(() => {
     const fetchUserData = async () => {
