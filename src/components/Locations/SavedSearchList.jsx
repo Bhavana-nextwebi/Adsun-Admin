@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState,useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { toast } from 'react-toastify';
 import { paginateData, calculateTotalPages } from '../../assets/js/script';
 import TableHeader from '../Common/TableComponent/TableHeader';
 import EntriesDropdown from '../Common/TableComponent/EntriesDropdown';
@@ -23,11 +22,6 @@ export const SavedSearchList = () => {
   const routeLocation = useLocation();
 
   const userDetails = routeLocation.state?.userDetails || null;
-const userGuid =
-  routeLocation.state?.userGuid ||
-  routeLocation.state?.userDetails?.userGuid ||
-  null;
-  const highlightSearchId = routeLocation.state?.highlightSearchId;
   const highlightCriteria = routeLocation.state?.highlightCriteria;
 
   const PageLevelAccessurl = 'google-search';
@@ -55,18 +49,15 @@ const userGuid =
       }
     }
   }, [pageAccessData, navigate]);
-useEffect(() => {
-  fetchData();
-}, []);
 
-const fetchData = async () => {
+
+const fetchData = useCallback(async () => {
   try {
     setLoading(true);
 
     const guid =
       routeLocation.state?.userGuid ||
       routeLocation.state?.userDetails?.userGuid;
-
     let response;
 
     if (guid) {
@@ -90,7 +81,10 @@ const fetchData = async () => {
   } finally {
     setLoading(false);
   }
-};
+}, [routeLocation.state]);
+useEffect(() => {
+  fetchData();
+}, [fetchData]);
 const isHighlighted = (item) => {
   if (!highlightCriteria) return false;
 

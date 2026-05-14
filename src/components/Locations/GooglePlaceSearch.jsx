@@ -10,7 +10,6 @@ import { usePageLevelAccess } from "../../hooks/usePageLevelAccess";
 import {
   useNavigate,
   useLocation,
-    useParams
 } from "react-router-dom";
 
 export const GooglePlaceSearch = () => {
@@ -28,8 +27,6 @@ export const GooglePlaceSearch = () => {
     useState("");
 
   // USER DETAILS
-  const [userDetails, setUserDetails] =
-    useState(null);
 
 
 
@@ -107,10 +104,6 @@ const shareId = routeLocation.state?.userDetails?.shareId;
           .longitude || ""
       );
 
-      setUserDetails(
-        routeLocation.state
-          .userDetails || null
-      );
     }
   }, [
     routeLocation.state

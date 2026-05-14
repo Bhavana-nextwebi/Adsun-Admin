@@ -1,12 +1,12 @@
 import React, {
   useEffect,
   useState,
+  useCallback
 } from 'react';
 
 import {
   useNavigate,
   useLocation,
-  useParams,
 } from 'react-router-dom';
 
 import * as XLSX from 'xlsx';
@@ -112,36 +112,43 @@ const id = queryParams.get("searchId");
     navigate,
   ]);
 
-  useEffect(() => {
-    if (searchId) {
-      fetchData();
-    } else {
+
+
+  const fetchData = useCallback(
+  async () => {
+    try {
+      setLoading(true);
+
+      const response =
+        await getSearchResultsBySearchId(
+          searchId
+        );
+
+      if (
+        response?.isSuccess
+      ) {
+        setData(
+          response.result || []
+        );
+      } else {
+        setData([]);
+      }
+    } catch (error) {
+      handleErrors(error);
+      setData([]);
+    } finally {
       setLoading(false);
     }
-  }, [searchId]);
-
-  const fetchData =
-    async () => {
-      try {
-        const response =
-          await getSearchResultsBySearchId(
-            searchId
-          );
-
-        if (
-          response?.isSuccess
-        ) {
-          setData(
-            response.result || []
-          );
-        }
-      } catch (error) {
-        handleErrors(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
+  },
+  [searchId]
+);
+useEffect(() => {
+  if (searchId) {
+    fetchData();
+  } else {
+    setLoading(false);
+  }
+}, [searchId, fetchData]);
   const filteredData =
     data.filter((item) => {
       const query =
