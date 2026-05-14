@@ -107,7 +107,7 @@ export const ProfilePageContent = ({ onBack }) => {
               <form onSubmit={handleSubmit}>
                 <div className="row">
                   <div className="col-lg-12">
-                    <h1>Test</h1>
+                    <h1>My Profile</h1>
                     <div className="text-center">
                       <div className="profile-user position-relative d-inline-block mx-auto mb-4">
                         {currentProfileImage ? (
