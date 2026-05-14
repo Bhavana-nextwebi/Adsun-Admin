@@ -85,7 +85,7 @@ const fetchData = useCallback(async () => {
   } finally {
     setLoading(false);
   }
-}, [routeLocation.state]);
+}, [routeLocation.state, userGuidFromQuery]);
 useEffect(() => {
   fetchData();
 }, [fetchData]);
