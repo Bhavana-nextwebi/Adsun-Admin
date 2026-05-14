@@ -39,3 +39,10 @@ export const getAllSavedSearches = async () => {
   );
   return response.data;
 };
+export const getRemainingCredits = async () => {
+  const response = await axiosInstance.get(
+    "/google-search/credits-remaining-search"
+  );
+
+  return response.data;
+};

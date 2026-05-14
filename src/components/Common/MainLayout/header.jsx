@@ -5,7 +5,6 @@ import { useDispatch } from "react-redux";
 import { logoutUser } from "../../../redux/auth/loginThunk";
 import { useNavigate } from "react-router-dom";
 import { fetchUserProfile } from "../../../services/newUserService.jsx";
-import Cookies from "js-cookie";
 import { handleErrors } from "../../../utils/errorHandler.jsx";
 
 const Header = () => {
@@ -20,8 +19,7 @@ const Header = () => {
   };
 
   const { handlenavbarClick, isClass } = useNavbarToggle();
-
-
+  
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -106,8 +104,7 @@ const Header = () => {
                                 </div>
                             </div> */}
 
-          
-
+            
               <div className="dropdown ms-sm-3 header-item topbar-user">
                 <button
                   type="button"

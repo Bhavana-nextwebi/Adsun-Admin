@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import {
   getAllCategories,
   searchPlaces,
+  getRemainingCredits,
 } from "../../services/searchLocationsService";
 import { handleErrors } from "../../utils/errorHandler";
 import ComponentHeader from "../Common/OtherElements/ComponentHeader";
@@ -50,6 +51,7 @@ export const GooglePlaceSearch = () => {
       "google-search/add"
     );
 
+    const [remainingCredits, setRemainingCredits] = useState(0);
     const userGuid = routeLocation.state?.userDetails?.userGuid;
 const shareId = routeLocation.state?.userDetails?.shareId;
   // PAGE ACCESS
@@ -73,21 +75,25 @@ const shareId = routeLocation.state?.userDetails?.shareId;
   }, []);
 
   const loadData = async () => {
-    try {
-      const response =
-        await getAllCategories();
+  try {
+    const [categoryResponse, creditsResponse] = await Promise.all([
+      getAllCategories(),
+      getRemainingCredits(),
+    ]);
 
-      if (
-        response?.isSuccess
-      ) {
-        setCategories(
-          response.result || []
-        );
-      }
-    } catch (error) {
-      handleErrors(error);
+    if (categoryResponse?.isSuccess) {
+      setCategories(categoryResponse.result || []);
     }
-  };
+
+    if (creditsResponse?.isSuccess) {
+      setRemainingCredits(
+        creditsResponse.result.remainingCredits || 0
+      );
+    }
+  } catch (error) {
+    handleErrors(error);
+  }
+};
 
   // AUTO POPULATE LAT/LNG + USER DETAILS
   useEffect(() => {
@@ -233,6 +239,16 @@ navigate(url, {
       <ComponentHeader
         title="Google Places Search"
       />
+      <div className="alert alert-info d-flex justify-content-between align-items-center shadow-sm">
+  <div>
+    <i className="fa fa-database me-2"></i>
+    Remaining Search Credits
+  </div>
+
+  <span className="badge bg-primary fs-6">
+    {remainingCredits}
+  </span>
+</div>
 
       <div className="card shadow-sm border-0">
         <div className="card-header bg-white">
