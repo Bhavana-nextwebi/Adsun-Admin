@@ -162,18 +162,24 @@ const handleSubmit = async (e) => {
       toast.success("Search completed successfully!");
 
       // ❌ DO NOT pass results here
-     navigate("/google-search/savedsearch", {
-  state: {
-    userGuid,
+   const navigationState = {
+  highlightCriteria: {
+    category: searchText,
+    latitude: Number(latitude),
+    longitude: Number(longitude),
+    radiusKm: Number(radiusKm),
+    radiusMeters: Number(radiusKm) * 1000,
+  },
+};
 
-    highlightCriteria: {
-      category: searchText,
-      latitude: Number(latitude),
-      longitude: Number(longitude),
-      radiusKm: Number(radiusKm),
-      radiusMeters: Number(radiusKm) * 1000
-    }
-  }
+let url = "/google-search/savedsearch";
+
+if (userGuid) {
+  url += `?userGuid=${userGuid}`;
+}
+
+navigate(url, {
+  state: navigationState,
 });
     }
   } catch (error) {
@@ -186,20 +192,26 @@ const handleSubmit = async (e) => {
       );
 
       setTimeout(() => {
-    navigate("/google-search/savedsearch", {
-  state: {
-    userGuid,
-
+  const navigationState = {
     highlightCriteria: {
       category: searchText,
       latitude: Number(latitude),
       longitude: Number(longitude),
       radiusKm: Number(radiusKm),
-      radiusMeters: Number(radiusKm) * 1000
-    }
+      radiusMeters: Number(radiusKm) * 1000,
+    },
+  };
+
+  let url = "/google-search/savedsearch";
+
+  if (userGuid) {
+    url += `?userGuid=${userGuid}`;
   }
-});
-      }, 2000);
+
+  navigate(url, {
+    state: navigationState,
+  });
+}, 2000);
 
       return;
     }

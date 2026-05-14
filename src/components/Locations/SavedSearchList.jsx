@@ -20,6 +20,9 @@ export const SavedSearchList = () => {
 
   const navigate = useNavigate();
   const routeLocation = useLocation();
+  const queryParams = new URLSearchParams(routeLocation.search);
+const userGuidFromQuery =
+  queryParams.get("userGuid");
 
   const userDetails = routeLocation.state?.userDetails || null;
   const highlightCriteria = routeLocation.state?.highlightCriteria;
@@ -55,9 +58,10 @@ const fetchData = useCallback(async () => {
   try {
     setLoading(true);
 
-    const guid =
-      routeLocation.state?.userGuid ||
-      routeLocation.state?.userDetails?.userGuid;
+  const guid =
+  userGuidFromQuery ||
+  routeLocation.state?.userGuid ||
+  routeLocation.state?.userDetails?.userGuid;
     let response;
 
     if (guid) {
@@ -130,10 +134,17 @@ const isHighlighted = (item) => {
     setCurrentPage(1);
   };
 
-  const handleViewResults = (item) => {
-   navigate(
-  `/google-search/place-results?searchId=${item.id}`,
-  {
+ const handleViewResults = (item) => {
+  let url = `/google-search/place-results?searchId=${item.id}`;
+
+  if (userGuidFromQuery) {
+    url += `&userGuid=${userGuidFromQuery}`;
+  }
+  else{
+    url+=`&userGuid=${item.userGuid}`
+  }
+ 
+  navigate(url, {
     state: {
       searchInfo: {
         category: item.category,
@@ -142,9 +153,8 @@ const isHighlighted = (item) => {
       },
       userDetails,
     },
-  }
-);
-  };
+  });
+};
 
   return (
     <>
