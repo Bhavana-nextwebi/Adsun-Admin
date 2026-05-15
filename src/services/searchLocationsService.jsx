@@ -46,3 +46,9 @@ export const getRemainingCredits = async () => {
 
   return response.data;
 };
+export const SearchCreditDetails=async()=>{
+  const response=await axiosInstance.get(
+    "/google-search/credits-remaining-search"
+  );
+  return response.data;
+}

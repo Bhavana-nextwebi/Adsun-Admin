@@ -6,7 +6,7 @@ import TableHeader from "../Common/TableComponent/TableHeader";
 import EntriesDropdown from "../Common/TableComponent/EntriesDropdown";
 import TablesRow from "../Common/TableComponent/TablesRow";
 import { Pagination } from "../Common/TableComponent/Pagination";
-import { getAppUsers, deleteAppUser } from "../../services/appUserServices";
+import { getAppUsers, deleteAppUser,ChangePassword } from "../../services/appUserServices";
 import { Loading } from "../Common/OtherElements/Loading";
 import "react-toastify/dist/ReactToastify.css";
 import Swal from "sweetalert2";
@@ -23,6 +23,11 @@ export const ManageAppUser = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [pageAccessDetails, setPageAccessDetails] = useState([]);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+const [selectedUserGuid, setSelectedUserGuid] = useState("");
+const [newPassword, setNewPassword] = useState("");
+const [confirmPassword, setConfirmPassword] = useState("");
+const [passwordLoading, setPasswordLoading] = useState(false);
 
   const PageLevelAccessurl = "app-user";
   const navigate = useNavigate();
@@ -78,6 +83,41 @@ export const ManageAppUser = () => {
       }
     }
   };
+  const handleChangePassword = async () => {
+  if (!newPassword || !confirmPassword) {
+    Swal.fire("Error", "Please fill all fields", "error");
+    return;
+  }
+
+  if (newPassword !== confirmPassword) {
+    Swal.fire("Error", "Passwords do not match", "error");
+    return;
+  }
+
+  try {
+    setPasswordLoading(true);
+
+    await ChangePassword({
+      userGuid: selectedUserGuid,
+      newPassword: newPassword,
+    });
+
+    Swal.fire(
+      "Success",
+      "Password updated successfully",
+      "success"
+    );
+
+    setShowPasswordModal(false);
+    setNewPassword("");
+    setConfirmPassword("");
+    setSelectedUserGuid("");
+  } catch (error) {
+    handleErrors(error);
+  } finally {
+    setPasswordLoading(false);
+  }
+};
 
   return (
     <>
@@ -120,13 +160,14 @@ export const ManageAppUser = () => {
                           "Last Name",
                           "Email Address",
                           "Phone Number",
+                           "Change Password",
                           "Added On",
                           "Action",
                         ]}
                       />
                       <tbody className="manage-property-owner-table-values">
                         {currentData.length === 0 ? (
-                          <TableDataStatusError colspan="8" />
+                          <TableDataStatusError colspan="9" />
                         ) : (
                           currentData.map((item, index) => (
                             <TablesRow
@@ -147,6 +188,27 @@ export const ManageAppUser = () => {
                                 LastName: item.lastName,
                                 emailId: item.emailId,
                                 MobileNo: item.mobileNo,
+                                changePassword: (
+  <button
+    className="btn btn-sm"
+    style={{
+      background:
+        "linear-gradient(135deg, #f59e0b, #facc15)",
+      border: "none",
+      color: "#000",
+      fontWeight: "600",
+      borderRadius: "8px",
+      padding: "6px 12px",
+      whiteSpace: "nowrap",
+    }}
+    onClick={() => {
+      setSelectedUserGuid(item.userGuid);
+      setShowPasswordModal(true);
+    }}
+  >
+    Change Password
+  </button>
+),
                                 addedOn: new Date(item.createdOn).toLocaleDateString(),
                               }}
                               columns={[
@@ -156,12 +218,14 @@ export const ManageAppUser = () => {
                                 "LastName",
                                 "emailId",
                                 "MobileNo",
+                                "changePassword",
                                 "addedOn",
                               ]}
-                              hideIcons={false}
-                              onEdit={() => navigate(`add/${item.id}`)}
-                              onDelete={() => handleDelete(item.id)}
-                              pageLevelAccessData={pageAccessDetails}
+                             hideIcons={false}
+onEdit={() => navigate(`add/${item.id}`)}
+onDelete={() => handleDelete(item.id)}
+
+pageLevelAccessData={pageAccessDetails}
                             />
                           ))
                         )}
@@ -184,6 +248,106 @@ export const ManageAppUser = () => {
       ) : (
         ""
       )}
+      {showPasswordModal && (
+  <div
+    className="modal fade show d-block"
+    tabIndex="-1"
+    style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+  >
+    <div className="modal-dialog modal-dialog-centered">
+      <div
+        className="modal-content border-0"
+        style={{
+          borderRadius: "20px",
+          overflow: "hidden",
+        }}
+      >
+        {/* Header */}
+        <div
+          className="modal-header border-0"
+          style={{
+            background:
+              "linear-gradient(135deg, #f59e0b, #facc15)",
+          }}
+        >
+          <h5 className="modal-title fw-bold text-dark">
+            Change Password
+          </h5>
+
+          <button
+            type="button"
+            className="btn-close"
+            onClick={() => setShowPasswordModal(false)}
+          ></button>
+        </div>
+
+        {/* Body */}
+        <div className="modal-body p-4">
+          <div className="mb-3">
+            <label className="form-label fw-semibold">
+              New Password
+            </label>
+
+            <input
+              type="password"
+              className="form-control"
+              placeholder="Enter new password"
+              value={newPassword}
+              onChange={(e) =>
+                setNewPassword(e.target.value)
+              }
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label fw-semibold">
+              Confirm Password
+            </label>
+
+            <input
+              type="password"
+              className="form-control"
+              placeholder="Confirm password"
+              value={confirmPassword}
+              onChange={(e) =>
+                setConfirmPassword(e.target.value)
+              }
+            />
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="modal-footer border-0">
+          <button
+            className="btn btn-light"
+            onClick={() =>
+              setShowPasswordModal(false)
+            }
+          >
+            Cancel
+          </button>
+
+          <button
+            className="btn"
+            style={{
+              background:
+                "linear-gradient(135deg, #f59e0b, #facc15)",
+              color: "#000",
+              fontWeight: "600",
+              border: "none",
+            }}
+            onClick={handleChangePassword}
+            disabled={passwordLoading}
+          >
+            {passwordLoading
+              ? "Updating..."
+              : "Update Password"}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
     </>
   );
 };

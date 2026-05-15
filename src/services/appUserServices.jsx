@@ -48,3 +48,6 @@ export const fetchAppUserById = async (Id) => {
 };
 
 
+export const ChangePassword=async(payload)=>{
+  return await axiosInstance.put('User/change-password',payload)
+}

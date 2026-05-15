@@ -118,7 +118,7 @@ const Header = () => {
                     <img
                       className="rounded-circle header-profile-user"
                       src={
-                        profileImage ? profileImage : allImages.defaultprofile
+                        profileImage ? `https://4.nxtai.dev/${profileImage}`: allImages.defaultprofile
                       }
                       alt="Header Avatar"
                     />

@@ -35,7 +35,7 @@ import { AllLocations } from "../pages/AllLocations";
 import { GooglePlaceResultsSearch } from "../pages/GooglePlaceResultsSearch";
 import { SavedSearchListPage } from "../pages/SavedSearchListPage";
 import { SearchResultPage } from "../pages/SearchResultPage";
-
+import { GoogleSearchCreditsCardPage } from "../pages/GoogleSearchCreditsCardPage";
 const routes = [
   {
     path: "/",
@@ -82,6 +82,7 @@ const routes = [
           { path:  "search-results/:searchId", element: <GooglePlaceResultsSearch /> },
           { path: "savedsearch", element: <SavedSearchListPage /> },
           { path: "place-results", element: <SearchResultPage /> },
+          {path:"search-credits",element:<GoogleSearchCreditsCardPage/>}
         ],
       },
 

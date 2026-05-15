@@ -2,7 +2,7 @@ import React from 'react';
 import { BootstrapTooltip } from '../../../assets/js/script';
 
 
-const TablesRow = ({ rowData, columns, hideIcons, onEdit, onDelete, onAccessChange, showIcons, onClone, pageLevelAccessData }) => {
+const TablesRow = ({ rowData, columns, hideIcons, onEdit, onDelete,onChangePassword, onAccessChange, showIcons, onClone, pageLevelAccessData }) => {
     const handleCheckboxChange = (field) => {
         const newValue = !rowData[field];
         onAccessChange({ ...rowData, field, value: newValue });
