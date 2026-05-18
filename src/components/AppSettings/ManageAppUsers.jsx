@@ -15,6 +15,7 @@ import { confirmDelete } from "../Common/OtherElements/confirmDeleteClone";
 import { TableDataStatusError } from "../Common/OtherElements/TableDataStatusError";
 import { handleErrors } from "../../utils/errorHandler";
 import { usePageLevelAccess } from "../../hooks/usePageLevelAccess";
+import { Eye, EyeOff } from "lucide-react";
 
 export const ManageAppUser = () => {
   const [entriesPerPage, setEntriesPerPage] = useState(10);
@@ -28,6 +29,8 @@ const [selectedUserGuid, setSelectedUserGuid] = useState("");
 const [newPassword, setNewPassword] = useState("");
 const [confirmPassword, setConfirmPassword] = useState("");
 const [passwordLoading, setPasswordLoading] = useState(false);
+const [showNewPassword, setShowNewPassword] = useState(false);
+const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const PageLevelAccessurl = "app-user";
   const navigate = useNavigate();
@@ -57,10 +60,16 @@ const [passwordLoading, setPasswordLoading] = useState(false);
     fetchData();
   }, []);
 
-  const filteredData = manageAppUsers.filter((user) =>
-   user.firstName?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+ const filteredData = manageAppUsers.filter((user) => {
+  const query = searchQuery.toLowerCase();
 
+  return (
+    user.firstName?.toLowerCase().includes(query) ||
+    user.lastName?.toLowerCase().includes(query) ||
+    user.emailId?.toLowerCase().includes(query) ||
+    user.mobileNo?.toLowerCase().includes(query)
+  );
+});
   const currentData = paginateData(filteredData, currentPage, entriesPerPage);
   const totalPages = calculateTotalPages(filteredData.length, entriesPerPage);
 
@@ -137,13 +146,17 @@ const [passwordLoading, setPasswordLoading] = useState(false);
                     options={[10, 25, 50, 100]}
                   />
                   <div>
-                    <input
-                      type="text"
-                      placeholder="Search..."
-                      className="form-control mb-2"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
+                   <input
+  type="text"
+  placeholder="Search..."
+  className="form-control mb-2"
+  value={searchQuery}
+  autoComplete="new-password"
+  name="search_random_app_user"
+  id="search_random_app_user"
+  spellCheck={false}
+  onChange={(e) => setSearchQuery(e.target.value)}
+/>
                   </div>
                 </div>
 
@@ -189,25 +202,26 @@ const [passwordLoading, setPasswordLoading] = useState(false);
                                 emailId: item.emailId,
                                 MobileNo: item.mobileNo,
                                 changePassword: (
-  <button
-    className="btn btn-sm"
-    style={{
-      background:
-        "linear-gradient(135deg, #f59e0b, #facc15)",
-      border: "none",
-      color: "#000",
-      fontWeight: "600",
-      borderRadius: "8px",
-      padding: "6px 12px",
-      whiteSpace: "nowrap",
-    }}
-    onClick={() => {
-      setSelectedUserGuid(item.userGuid);
-      setShowPasswordModal(true);
-    }}
-  >
-    Change Password
-  </button>
+ <button
+  type="button"
+  className="btn btn-sm"
+  style={{
+    background:
+      "linear-gradient(135deg, #f59e0b, #facc15)",
+    border: "none",
+    color: "#000",
+    fontWeight: "600",
+    borderRadius: "8px",
+    padding: "6px 12px",
+    whiteSpace: "nowrap",
+  }}
+  onClick={() => {
+    setSelectedUserGuid(item.userGuid);
+    setShowPasswordModal(true);
+  }}
+>
+  Change Password
+</button>
 ),
                                 addedOn: new Date(item.createdOn).toLocaleDateString(),
                               }}
@@ -288,61 +302,89 @@ pageLevelAccessData={pageAccessDetails}
               New Password
             </label>
 
-            <input
-              type="password"
-              className="form-control"
-              placeholder="Enter new password"
-              value={newPassword}
-              onChange={(e) =>
-                setNewPassword(e.target.value)
-              }
-            />
-          </div>
+          <div className="position-relative">
+  <input
+    type={showNewPassword ? "text" : "password"}
+    className="form-control pe-5"
+    placeholder="Enter new password"
+    autoComplete="new-password"
+    value={newPassword}
+    onChange={(e) => setNewPassword(e.target.value)}
+  />
+
+  <button
+    type="button"
+    className="btn position-absolute top-50 end-0 translate-middle-y border-0 bg-transparent"
+    onClick={() => setShowNewPassword(!showNewPassword)}
+  >
+    {showNewPassword ? (
+      <Eye size={18} />
+    ) : (
+      <EyeOff size={18} />
+    )}
+  </button>
+</div>
+
+      </div>
 
           <div className="mb-3">
             <label className="form-label fw-semibold">
               Confirm Password
             </label>
+<div className="position-relative">
+  <input
+    type={showConfirmPassword ? "text" : "password"}
+    className="form-control pe-5"
+    placeholder="Confirm password"
+    autoComplete="new-password"
+    value={confirmPassword}
+    onChange={(e) => setConfirmPassword(e.target.value)}
+  />
 
-            <input
-              type="password"
-              className="form-control"
-              placeholder="Confirm password"
-              value={confirmPassword}
-              onChange={(e) =>
-                setConfirmPassword(e.target.value)
-              }
-            />
+  <button
+    type="button"
+    className="btn position-absolute top-50 end-0 translate-middle-y border-0 bg-transparent"
+    onClick={() =>
+      setShowConfirmPassword(!showConfirmPassword)
+    }
+  >
+    {showConfirmPassword ? (
+      <Eye size={18} />
+    ) : (
+      <EyeOff size={18} />
+    )}
+  </button>
+</div>
+    
+            
           </div>
         </div>
 
         {/* Footer */}
         <div className="modal-footer border-0">
           <button
-            className="btn btn-light"
-            onClick={() =>
-              setShowPasswordModal(false)
-            }
-          >
-            Cancel
-          </button>
+  type="button"
+  className="btn btn-light"
+  onClick={() => setShowPasswordModal(false)}
+>
+  Cancel
+</button>
 
           <button
-            className="btn"
-            style={{
-              background:
-                "linear-gradient(135deg, #f59e0b, #facc15)",
-              color: "#000",
-              fontWeight: "600",
-              border: "none",
-            }}
-            onClick={handleChangePassword}
-            disabled={passwordLoading}
-          >
-            {passwordLoading
-              ? "Updating..."
-              : "Update Password"}
-          </button>
+  type="button"
+  className="btn"
+  style={{
+    background:
+      "linear-gradient(135deg, #f59e0b, #facc15)",
+    color: "#000",
+    fontWeight: "600",
+    border: "none",
+  }}
+  onClick={handleChangePassword}
+  disabled={passwordLoading}
+>
+  {passwordLoading ? "Updating..." : "Update Password"}
+</button>
         </div>
       </div>
     </div>

@@ -52,7 +52,8 @@ export const ProfilePageContent = ({ onBack }) => {
       ownerUserName,
       ownerUserRole,
       ownerEmailId,
-      ownerContactNo
+      ownerContactNo,
+      
     );
 
     if (Object.keys(validationErrors).length > 0) {
@@ -84,7 +85,7 @@ export const ProfilePageContent = ({ onBack }) => {
   const handleProfileChange = (e) => {
     const file = e.target.files[0];
     setOwnerProfile(file);
-
+    console.log(file);
     if (file) {
       const fileURL = URL.createObjectURL(file);
       setCurrentProfileImage(fileURL);
@@ -112,7 +113,7 @@ export const ProfilePageContent = ({ onBack }) => {
                       <div className="profile-user position-relative d-inline-block mx-auto mb-4">
                         {currentProfileImage ? (
                           <img
-                            src={currentProfileImage}
+                            src={`https://4.nxtai.dev/${currentProfileImage}`}
                             className="rounded-circle avatar-xl img-thumbnail user-profile-image shadow"
                             alt="user-profile-image"
                           />
