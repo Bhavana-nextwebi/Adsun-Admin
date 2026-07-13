@@ -88,8 +88,7 @@ export const CampaignDetails = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const leadDetails = campaign?.leadDetails || [];
-
+const leadDetails = useMemo(() => campaign?.leadDetails || [], [campaign]);
   const leadCounts = useMemo(
     () =>
       leadDetails.reduce(

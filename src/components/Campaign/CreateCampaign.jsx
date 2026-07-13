@@ -300,10 +300,6 @@ export const CreateCampaign = () => {
     XLSX.writeFile(workbook, `${safeCategory}_${safeArea}.xlsx`);
   };
 
-  const selectedBusinesses = useMemo(
-    () => businesses.filter((b) => selectedPhones.has(b.normalizedPhone)),
-    [businesses, selectedPhones]
-  );
 
   const getLocationIdForArea = (area) => {
     if (!area) return 0;
