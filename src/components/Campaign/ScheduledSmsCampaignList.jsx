@@ -9,7 +9,7 @@ import TableHeader from "../Common/TableComponent/TableHeader";
 import EntriesDropdown from "../Common/TableComponent/EntriesDropdown";
 import { Pagination } from "../Common/TableComponent/Pagination";
 import { Loading } from "../Common/OtherElements/Loading";
-import { TableDataStatusError } from "../Common/OtherElements/TableDataStatusError";
+
 
 import { getAllSmsCampaigns } from "../../services/smsCampaignService";
 import { handleErrors } from "../../utils/errorHandler";

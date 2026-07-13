@@ -90,7 +90,7 @@ export const SmsCampaignDetails = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  const leadDetails = campaign?.leadDetails || [];
+  const leadDetails = useMemo(() => campaign?.leadDetails || [], [campaign]);
 
   const leadCounts = useMemo(
     () =>
@@ -237,10 +237,6 @@ export const SmsCampaignDetails = () => {
                   ) : (
                     filteredLeads.map((lead, index) => {
                       const meta = LEAD_STATUS_META[lead.sendStatus] || {
-                        badge: "bg-secondary-subtle text-secondary-emphasis",
-                        dot: "#9ca3af",
-                      };
-                      const dMeta = LEAD_STATUS_META[lead.deliveryStatus] || {
                         badge: "bg-secondary-subtle text-secondary-emphasis",
                         dot: "#9ca3af",
                       };
