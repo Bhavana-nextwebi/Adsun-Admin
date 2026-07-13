@@ -77,6 +77,78 @@ export const validateRoles = (formData) => {
   };
 };
 
+//validity for whatsapp template
+
+//validation for whatsapp templates
+//validity for whatsapp template
+export const CATEGORY_OPTIONS = ['Marketing', 'Utility'];
+export const HEADER_TYPE_OPTIONS = ['None', 'Text', 'Image', 'Video', 'Document', 'Location'];
+export const LANGUAGE_OPTIONS = [
+  { code: 'en', label: 'English' },
+  { code: 'en_US', label: 'English (US)' },
+  { code: 'en_GB', label: 'English (UK)' },
+  { code: 'hi', label: 'Hindi' },
+  { code: 'mr', label: 'Marathi' },
+  { code: 'ta', label: 'Tamil' },
+  { code: 'te', label: 'Telugu' },
+  { code: 'kn', label: 'Kannada' },
+  { code: 'gu', label: 'Gujarati' },
+  { code: 'bn', label: 'Bengali' },
+  { code: 'pa', label: 'Punjabi' },
+  { code: 'ml', label: 'Malayalam' }
+];
+
+export const countPlaceholders = (message) => {
+  const matches = (message || '').match(/\{\{\d+\}\}/g);
+  return matches ? new Set(matches).size : 0;
+};
+
+
+
+//validation for whatsapp templates
+export const validateWhatsappTemplateData = (formData) => {
+  let valid = true;
+  const errors = {};
+
+  if (!formData.templateId || !formData.templateId.trim()) {
+    errors.templateId = "Template ID is required";
+    valid = false;
+  } else if (formData.templateId.length > 100) {
+    errors.templateId = "Valid Template ID is required";
+    valid = false;
+  }
+
+  if (!formData.templateName || !formData.templateName.trim()) {
+    errors.templateName = "Template Name is required";
+    valid = false;
+  } 
+
+
+  if (
+    formData.headerType &&
+    formData.headerType !== "None" &&
+    formData.headerType !== "Location" &&
+    (!formData.headerValue || !formData.headerValue.trim())
+  ) {
+    errors.headerValue = "Header Value is required for the selected Header Type";
+    valid = false;
+  }
+
+  if (!formData.message || !formData.message.trim()) {
+    errors.message = "Message is required";
+    valid = false;
+  } else if (formData.message.length > 1024) {
+    errors.message = "Message cannot exceed 1024 characters";
+    valid = false;
+  }
+
+  if (formData.footer && formData.footer.length > 60) {
+    errors.footer = "Footer cannot exceed 60 characters";
+    valid = false;
+  }
+
+  return { valid, errors };
+};
 //validation for amenity master
 export const validateAmenityMaster = (formData) => {
   const errors = {};
@@ -98,6 +170,59 @@ export const validateAmenityMaster = (formData) => {
   return { valid, errors };
 };
 
+// ---------------------------------------------------------------------
+// Add this block to utils/validation.js (alongside validateWhatsappTemplateData).
+// Reuses the existing countPlaceholders export from the same file.
+// ---------------------------------------------------------------------
+
+
+// ---------------------------------------------------------------------
+// Add this block to utils/validation.js (alongside validateWhatsappTemplateData).
+// Reuses the existing countPlaceholders export from the same file.
+// ---------------------------------------------------------------------
+
+// SMS/DLT templates use the unnumbered {#var#} token (as opposed to
+// WhatsApp's numbered {{1}}, {{2}}) — each occurrence is a separate,
+// positional variable, so this counts total matches rather than unique
+// tokens.
+export const countSmsPlaceholders = (message) => {
+  const matches = (message || '').match(/\{#var#\}/g);
+  return matches ? matches.length : 0;
+};
+
+
+export const validateSmsTemplateData = (formData) => {
+  let valid = true;
+  const errors = {};
+
+  if (!formData.templateId || !formData.templateId.trim()) {
+    errors.templateId = "Template ID is required";
+    valid = false;
+  } else if (formData.templateId.length > 100) {
+    errors.templateId = "Valid Template ID is required";
+    valid = false;
+  }
+
+  if (!formData.templateName || !formData.templateName.trim()) {
+    errors.templateName = "Template Name is required";
+    valid = false;
+  } 
+
+  if (!formData.templateType || !formData.templateType.trim()) {
+    errors.templateType = "Template Type is required";
+    valid = false;
+  }
+
+  if (!formData.templateMessage || !formData.templateMessage.trim()) {
+    errors.templateMessage = "Message is required";
+    valid = false;
+  } else if (formData.templateMessage.length > 1024) {
+    errors.templateMessage = "Message cannot exceed 1024 characters";
+    valid = false;
+  }
+
+  return { valid, errors };
+};
 //validation for BHK Type Master
 export const validateBHKType = (formData) => {
   const errors = {};

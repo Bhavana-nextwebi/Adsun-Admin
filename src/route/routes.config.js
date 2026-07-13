@@ -36,6 +36,15 @@ import { GooglePlaceResultsSearch } from "../pages/GooglePlaceResultsSearch";
 import { SavedSearchListPage } from "../pages/SavedSearchListPage";
 import { SearchResultPage } from "../pages/SearchResultPage";
 import { GoogleSearchCreditsCardPage } from "../pages/GoogleSearchCreditsCardPage";
+import { CampaignPage } from "../pages/CampaignPage";
+import { WhatsappTemplate } from "../pages/WhatsappTemplate";
+import { ScheduledCampaignPage } from "../pages/ScheduledCampaignPage";
+import { CampaignDetailsPage } from "../pages/CampaignDetailsPage";
+import { SmsTemplate } from "../pages/SmsTemplate";
+import { SmsCampaignPage } from "../pages/SmsCampaignPage";
+import { SmsCampaignDetailsPage } from "../pages/SmsCampaignDetailsPage";
+import { ScheduledSmsCampaignPage } from "../pages/ScheduledSmsCampaignPage";
+
 const routes = [
   {
     path: "/",
@@ -79,15 +88,37 @@ const routes = [
           { path: "", element: <GoogleSearchPage /> },
           { path: "search", element: <SearchLocationPage /> },
           { path: "locations", element: <AllLocations /> },
-          { path:  "search-results/:searchId", element: <GooglePlaceResultsSearch /> },
+          { path: "search-results/:searchId", element: <GooglePlaceResultsSearch /> },
           { path: "savedsearch", element: <SavedSearchListPage /> },
           { path: "place-results", element: <SearchResultPage /> },
-          {path:"search-credits",element:<GoogleSearchCreditsCardPage/>}
+          { path: "search-credits", element: <GoogleSearchCreditsCardPage /> },
         ],
       },
 
       // routing for master settings
       { path: "category-master", element: <Category /> },
+
+      // routing for whatsapp
+      {
+        path: "whatsapp",
+        children: [
+          { path: "template", element: <WhatsappTemplate /> },
+          { path: "campaign", element: <CampaignPage /> },
+          { path: "scheduled-campaign", element: <ScheduledCampaignPage /> },
+          { path: "campaign-details/:id", element: <CampaignDetailsPage /> },
+        ],
+      },
+
+      // routing for sms
+      {
+        path: "sms",
+        children: [
+          { path: "template", element: <SmsTemplate /> },
+          { path: "campaign", element: <SmsCampaignPage /> },
+          { path: "campaign-details/:id", element: <SmsCampaignDetailsPage /> },
+          { path: "scheduled-campaign", element: <ScheduledSmsCampaignPage /> },
+        ],
+      },
 
       { path: "dashboard", element: <DashboardPage /> },
       { path: "user-dashboard", element: <UserDashboardPage /> },

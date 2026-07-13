@@ -52,3 +52,9 @@ export const SearchCreditDetails=async()=>{
   );
   return response.data;
 }
+export const getAreasByCategory = async (category) => {
+  const res = await axiosInstance.get("/campaigns/category-wise-area", {
+    params: { category },
+  });
+  return res.data; // { result, isSuccess, message, responseCode }
+};
