@@ -19,7 +19,7 @@ export const addUser = async (ownerData) => {
     if (ownerData.profileImage) {
       formData.append('ProfileImage', ownerData.profileImage); 
     }
-    const response = await axiosInstance.post('auth/add-user', formData, {  headers: {
+    const response = await axiosInstance.post('access/add-user', formData, {  headers: {
       'Content-Type': 'multipart/form-data',
       'Authorization': `Bearer ${Cookies.get('accessToken')}`,
     }, });
