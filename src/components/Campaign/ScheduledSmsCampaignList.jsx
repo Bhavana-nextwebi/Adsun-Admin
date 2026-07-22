@@ -122,23 +122,23 @@ const initials = (name = "") =>
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 // scheduleDate is stored in UTC on the backend — convert to IST for display.
-const formatUTCToIST = (utcDateString) => {
-  if (!utcDateString) return "-";
+// const formatUTCToIST = (utcDateString) => {
+//   if (!utcDateString) return "-";
 
-  const normalized = utcDateString.endsWith("Z") ? utcDateString : `${utcDateString}Z`;
-  const date = new Date(normalized);
-  if (isNaN(date.getTime())) return "-";
+//   const normalized = utcDateString.endsWith("Z") ? utcDateString : `${utcDateString}Z`;
+//   const date = new Date(normalized);
+//   if (isNaN(date.getTime())) return "-";
 
-  return date.toLocaleString("en-IN", {
-    timeZone: "Asia/Kolkata",
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
-};
+//   return date.toLocaleString("en-IN", {
+//     timeZone: "Asia/Kolkata",
+//     day: "2-digit",
+//     month: "short",
+//     year: "numeric",
+//     hour: "2-digit",
+//     minute: "2-digit",
+//     hour12: true,
+//   });
+// };
 
 // sentDate / deliveredDate are already stored in IST wall-clock time on the
 // backend — just reformat the string as-is, no timezone conversion.

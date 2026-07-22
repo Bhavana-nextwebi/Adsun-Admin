@@ -351,11 +351,11 @@ export const CreateCampaign = () => {
   };
 
 
-  const getLocationIdForArea = (area) => {
-    if (!area) return 0;
-    const match = locations.find((row) => row.area === area);
-    return match?.id || match?.jioCoOrdinate || 0;
-  };
+  // const getLocationIdForArea = (area) => {
+  //   if (!area) return 0;
+  //   const match = locations.find((row) => row.area === area);
+  //   return match?.id || match?.jioCoOrdinate || 0;
+  // };
 
   const resetForm = () => {
     setCategoryId("");
