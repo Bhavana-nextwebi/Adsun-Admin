@@ -74,7 +74,6 @@ export const CreateCampaign = () => {
   const [categoryId, setCategoryId] = useState("");
   const [categoryName, setCategoryName] = useState("");
 
-  const [locations, setLocations] = useState([]);
   const [areaOptions, setAreaOptions] = useState([]);
   const [selectedArea, setSelectedArea] = useState("");
   const [areasLoading, setAreasLoading] = useState(false);
@@ -144,7 +143,6 @@ export const CreateCampaign = () => {
 
   useEffect(() => {
     setSelectedArea("");
-    setLocations([]);
     setAreaOptions([]);
 
     if (!categoryName) return;
@@ -158,7 +156,6 @@ export const CreateCampaign = () => {
         if (cancelled) return;
 
         const rows = res?.result || [];
-        setLocations(rows);
 
         const seen = new Set();
         const uniqueAreas = [];
@@ -177,7 +174,6 @@ export const CreateCampaign = () => {
       } catch (err) {
         console.error("Failed to fetch areas for category", err);
         if (!cancelled) {
-          setLocations([]);
           setAreaOptions([]);
         }
       } finally {
@@ -350,13 +346,6 @@ export const CreateCampaign = () => {
     XLSX.writeFile(workbook, `${safeCategory}_${safeArea}.xlsx`);
   };
 
-
-  // const getLocationIdForArea = (area) => {
-  //   if (!area) return 0;
-  //   const match = locations.find((row) => row.area === area);
-  //   return match?.id || match?.jioCoOrdinate || 0;
-  // };
-
   const resetForm = () => {
     setCategoryId("");
     setCategoryName("");
@@ -397,28 +386,16 @@ export const CreateCampaign = () => {
       Swal.fire("Error", "Please enter a campaign name", "error");
       return;
     }
-    // if (!categoryId) {
-    //   Swal.fire("Error", "Please select a category", "error");
-    //   return;
-    // }
     if (!templateId) {
       Swal.fire("Error", "Please select a message", "error");
       return;
     }
-    // if (isMediaHeader && !attachmentUrl.trim() && !templateStoredMediaUrl) {
-    //   Swal.fire("Error", `Please provide a ${attachmentMeta?.label.toLowerCase()}`, "error");
-    //   return;
-    // }
     if (placeholders.some((p) => !p.trim())) {
       Swal.fire("Error", "Please fill in all body placeholder values", "error");
       return;
     }
 
     const mobileNo = getRecipientNumbers();
-    // if (mobileNo.length === 0) {
-    //   Swal.fire("Error", "Please select at least one business or enter a valid number to send to", "error");
-    //   return;
-    // }
 
     // Backend requires these keys to always be present in the payload
     // (Buttons / HeaderType / HeaderValue / LanguageCode / AttachmentUrl),
