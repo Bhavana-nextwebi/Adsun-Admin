@@ -194,7 +194,6 @@ export const AddSmsTemplate = ({
                       placeholder="SMS-OFFER-01"
                       value={formData.templateId}
                       onChange={handleInputChange}
-                      disabled={editMode}
                       className={`form-control ${errors.templateId ? 'is-invalid' : ''}`}
                     />
                     {errors.templateId && <div className="invalid-feedback">{errors.templateId}</div>}

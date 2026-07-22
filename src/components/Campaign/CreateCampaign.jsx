@@ -45,6 +45,15 @@ export const normalizeIndianMobile = (raw) => {
   return `91${withoutTrunk}`;
 };
 
+// Formats a Date (or datetime-local string) as "YYYY-MM-DDTHH:mm:ss.sssZ"
+// e.g. "2026-07-20T03:14:43.110Z"
+const toIsoScheduleString = (dateLike) => {
+  if (!dateLike) return null;
+  const d = new Date(dateLike);
+  if (isNaN(d.getTime())) return null;
+  return d.toISOString();
+};
+
 const StepHeader = ({ step, title, subtitle, done }) => (
   <div className="d-flex align-items-center gap-3 mb-3">
     <span className={`step-badge ${done ? "step-badge-done" : ""}`}>
@@ -81,6 +90,10 @@ export const CreateCampaign = () => {
   const [numbersRevealed, setNumbersRevealed] = useState(false);
 
   const [visibleCount, setVisibleCount] = useState(BUSINESS_PAGE_SIZE);
+
+  // --- Manual audience entry (always available, entirely optional) ---
+  const [manualNumbersText, setManualNumbersText] = useState("");
+  const [manualPhones, setManualPhones] = useState(new Set());
 
   const [templates, setTemplates] = useState([]);
   const [templateId, setTemplateId] = useState("");
@@ -276,7 +289,44 @@ export const CreateCampaign = () => {
     });
   };
 
-  const getRecipientNumbers = () => [...selectedPhones];
+  // --- Manual number parsing/apply ---
+  const parseManualNumbers = (text) => {
+    const parts = text.split(/[\n,;\s]+/).map((p) => p.trim()).filter(Boolean);
+    const valid = new Set();
+    const invalid = [];
+    parts.forEach((p) => {
+      const normalized = normalizeIndianMobile(p);
+      if (normalized) valid.add(normalized);
+      else invalid.push(p);
+    });
+    return { valid, invalid };
+  };
+
+  const applyManualNumbers = () => {
+    if (!manualNumbersText.trim()) {
+      setManualPhones(new Set());
+      return;
+    }
+    const { valid, invalid } = parseManualNumbers(manualNumbersText);
+    setManualPhones(valid);
+    if (invalid.length > 0) {
+      Swal.fire(
+        "Some numbers skipped",
+        `${invalid.length} number(s) were invalid and ignored: ${invalid.slice(0, 10).join(", ")}${invalid.length > 10 ? "..." : ""}`,
+        "warning"
+      );
+    }
+  };
+
+  const removeManualPhone = (phone) => {
+    setManualPhones((prev) => {
+      const next = new Set(prev);
+      next.delete(phone);
+      return next;
+    });
+  };
+
+  const getRecipientNumbers = () => [...new Set([...selectedPhones, ...manualPhones])];
 
   const exportBusinessesToExcel = () => {
     if (filteredBusinesses.length === 0) return;
@@ -322,6 +372,8 @@ export const CreateCampaign = () => {
     setPlaceholders([]);
     setIsScheduled(false);
     setScheduleDate("");
+    setManualNumbersText("");
+    setManualPhones(new Set());
   };
 
   const handleTemplateChange = (id) => {
@@ -345,28 +397,40 @@ export const CreateCampaign = () => {
       Swal.fire("Error", "Please enter a campaign name", "error");
       return;
     }
-    if (!categoryId) {
-      Swal.fire("Error", "Please select a category", "error");
-      return;
-    }
+    // if (!categoryId) {
+    //   Swal.fire("Error", "Please select a category", "error");
+    //   return;
+    // }
     if (!templateId) {
       Swal.fire("Error", "Please select a message", "error");
       return;
     }
-    if (isMediaHeader && !attachmentUrl.trim() && !templateStoredMediaUrl) {
-      Swal.fire("Error", `Please provide a ${attachmentMeta?.label.toLowerCase()}`, "error");
-      return;
-    }
+    // if (isMediaHeader && !attachmentUrl.trim() && !templateStoredMediaUrl) {
+    //   Swal.fire("Error", `Please provide a ${attachmentMeta?.label.toLowerCase()}`, "error");
+    //   return;
+    // }
     if (placeholders.some((p) => !p.trim())) {
       Swal.fire("Error", "Please fill in all body placeholder values", "error");
       return;
     }
 
     const mobileNo = getRecipientNumbers();
-    if (mobileNo.length === 0) {
-      Swal.fire("Error", "Please select at least one business to send to", "error");
-      return;
-    }
+    // if (mobileNo.length === 0) {
+    //   Swal.fire("Error", "Please select at least one business or enter a valid number to send to", "error");
+    //   return;
+    // }
+
+    // Backend requires these keys to always be present in the payload
+    // (Buttons / HeaderType / HeaderValue / LanguageCode / AttachmentUrl),
+    // even when the selected template doesn't use them — so we always
+    // fall back to "" / [] / 0 instead of omitting the keys.
+    const resolvedHeaderValue = isMediaHeader
+      ? (attachmentUrl.trim() || templateStoredMediaUrl || "")
+      : (selectedTemplate?.headerValue || "");
+
+    const resolvedAttachmentUrl = isMediaHeader
+      ? (attachmentUrl.trim() || templateStoredMediaUrl || "")
+      : "";
 
     const payload = {
       campaignName: campaignName.trim(),
@@ -374,24 +438,21 @@ export const CreateCampaign = () => {
       mobileNo,
       templateId,
       languageCode: selectedTemplate?.languageCode || "",
-      headerType: selectedTemplate?.headerType || "None",
-      headerValue: isMediaHeader
-        ? (attachmentUrl.trim() || templateStoredMediaUrl)
-        : selectedTemplate?.headerType === "Text"
-        ? selectedTemplate?.headerValue || ""
-        : "",
+      headerType: selectedTemplate?.headerType || "",
+      headerValue: resolvedHeaderValue,
       bodyPlaceholders: placeholders,
-      attachmentUrl: "",
-      categoryId: Number(categoryId),
-      locationId: getLocationIdForArea(selectedArea),
-      area: selectedArea,
-      scheduleDate: isScheduled && scheduleDate ? new Date(scheduleDate).toISOString() : null,
+      attachmentUrl: resolvedAttachmentUrl,
+
+      // e.g. "2026-07-20T03:14:43.110Z"
+      scheduleDate: isScheduled && scheduleDate ? toIsoScheduleString(scheduleDate) : null,
       isScheduled: !!isScheduled,
-      buttons: templateButtons.map((b) => ({
-        type: b.type,
-        placeholder: "",
-        text: b.text,
-      })),
+      buttons: templateButtons.length > 0
+        ? templateButtons.map((btn) => ({
+            type: btn.type || "",
+            placeholder: btn.placeholder || "",
+            text: btn.text || "",
+          }))
+        : [],
     };
 
     try {
@@ -411,7 +472,10 @@ export const CreateCampaign = () => {
     }
   };
 
-  const recipientCount = selectedPhones.size;
+  const recipientCount = useMemo(
+    () => new Set([...selectedPhones, ...manualPhones]).size,
+    [selectedPhones, manualPhones]
+  );
 
   const detailsDone = Boolean(campaignName.trim() && categoryId);
   const audienceDone = recipientCount > 0;
@@ -828,9 +892,10 @@ export const CreateCampaign = () => {
               <StepHeader
                 step={1}
                 title="Campaign details & audience"
-                subtitle="Businesses matching your category and location load automatically"
+                subtitle="Businesses matching your category and location load automatically. You can also add specific numbers manually — entirely optional."
                 done={detailsDone && audienceDone}
               />
+
               <div className="row g-3">
                 <div className="col-md-6">
                   <label className="form-label">
@@ -847,6 +912,53 @@ export const CreateCampaign = () => {
                   <label className="form-label">Campaign type</label>
                   <input className="form-control" value={campaignType} disabled />
                 </div>
+              </div>
+
+              <div className="mt-3">
+                <label className="form-label">Manual phone numbers (optional)</label>
+                <textarea
+                  className="form-control"
+                  rows={3}
+                  placeholder="Enter numbers separated by comma, space, or new line e.g. 9876543210, 9123456789"
+                  value={manualNumbersText}
+                  onChange={(e) => setManualNumbersText(e.target.value)}
+                />
+                <div className="d-flex align-items-center gap-2 mt-2 flex-wrap">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary btn-sm"
+                    onClick={applyManualNumbers}
+                  >
+                    <i className="ri-check-line me-1" />
+                    Validate & apply
+                  </button>
+                  {manualPhones.size > 0 && (
+                    <span className="wa-muted small">
+                      {manualPhones.size} valid number{manualPhones.size !== 1 ? "s" : ""} added
+                    </span>
+                  )}
+                </div>
+
+                {manualPhones.size > 0 && (
+                  <div className="recipients-list mt-2">
+                    {[...manualPhones].map((phone) => (
+                      <div className="recipient-row" key={phone}>
+                        <span>{phone}</span>
+                        <button
+                          type="button"
+                          className="recipient-remove"
+                          onClick={() => removeManualPhone(phone)}
+                          title="Remove"
+                        >
+                          <i className="ri-close-line" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="row g-3 mt-1">
                 <div className="col-md-6">
                   <label className="form-label">
                     Category <span className="text-danger">*</span>

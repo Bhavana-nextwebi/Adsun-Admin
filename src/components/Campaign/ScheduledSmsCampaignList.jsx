@@ -119,6 +119,44 @@ const initials = (name = "") =>
     .map((word) => word[0]?.toUpperCase())
     .join("") || "?";
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+// scheduleDate is stored in UTC on the backend — convert to IST for display.
+const formatUTCToIST = (utcDateString) => {
+  if (!utcDateString) return "-";
+
+  const normalized = utcDateString.endsWith("Z") ? utcDateString : `${utcDateString}Z`;
+  const date = new Date(normalized);
+  if (isNaN(date.getTime())) return "-";
+
+  return date.toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
+
+// sentDate / deliveredDate are already stored in IST wall-clock time on the
+// backend — just reformat the string as-is, no timezone conversion.
+const formatISTAsIs = (dateString) => {
+  if (!dateString) return "-";
+
+  const match = dateString.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  if (!match) return "-";
+
+  const [, year, month, day, hour, minute] = match;
+
+  let h = parseInt(hour, 10);
+  const period = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+
+  return `${day} ${MONTHS[parseInt(month, 10) - 1]} ${year}, ${String(h).padStart(2, "0")}:${minute} ${period}`;
+};
+
 const SearchIcon = () => (
   <svg className="cls-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
     <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
@@ -441,9 +479,7 @@ export const ScheduledSmsCampaignList = () => {
                             </td>
 
                             <td className="text-nowrap text-muted">
-                              {item.sentDate
-                                ? new Date(item.sentDate).toLocaleString()
-                                : "-"}
+                              {formatISTAsIs(item.sentDate)}
                             </td>
 
                             <td>

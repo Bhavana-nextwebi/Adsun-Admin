@@ -48,7 +48,7 @@ export const GooglePlaceSearch = () => {
 
   const { pageAccessData } =
     usePageLevelAccess(
-      "google-search/add"
+      "google-search/search"
     );
 
     const [remainingCredits, setRemainingCredits] = useState(0);

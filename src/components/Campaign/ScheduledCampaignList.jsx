@@ -120,6 +120,28 @@ const initials = (name = "") =>
     .map((word) => word[0]?.toUpperCase())
     .join("") || "?";
 
+// Backend sends UTC timestamps, sometimes without a trailing "Z".
+// Normalize to a proper UTC ISO string before formatting so the
+// browser doesn't misinterpret it as local time.
+const formatToIST = (utcDateString) => {
+  if (!utcDateString) return "-";
+
+  const normalized = utcDateString.endsWith("Z") ? utcDateString : `${utcDateString}Z`;
+  const date = new Date(normalized);
+
+  if (isNaN(date.getTime())) return "-";
+
+  return date.toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+};
+
 const SearchIcon = () => (
   <svg className="cl-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
     <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
@@ -457,9 +479,7 @@ export const ScheduledCampaignList = () => {
                             </td>
 
                             <td className="text-nowrap text-muted">
-                              {item.scheduleDate
-                                ? new Date(item.scheduleDate).toLocaleString()
-                                : "-"}
+                              {formatToIST(item.scheduleDate)}
                             </td>
 
                             <td>

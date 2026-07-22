@@ -189,7 +189,7 @@ useEffect(() => {
                                 profileImage: (
                                   <img
                                     src={
-                                      item.profileImage ||
+                                    `https://4.nxtai.dev/${item.profileImage}` ||
                                       allImages.defaultprofile
                                     }
                                     alt="profile"

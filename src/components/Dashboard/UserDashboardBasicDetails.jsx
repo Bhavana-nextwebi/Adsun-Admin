@@ -87,7 +87,7 @@ export const UserDashboardBasicDetails = () => {
               <>
                 <div className="row">
                   <div className="col-xl-3 col-md-6">
-                    <div className="card card-animate">
+                    {/* <div className="card card-animate">
                       <div className="card-body">
                         <div className="d-flex align-items-center">
                           <div className="flex-grow-1 overflow-hidden">
@@ -117,11 +117,11 @@ export const UserDashboardBasicDetails = () => {
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </div> */}
                   </div>
 
                   <div className="col-xl-3 col-md-6">
-                    <div className="card card-animate">
+                    {/* <div className="card card-animate">
                       <div className="card-body">
                         <div className="d-flex align-items-center">
                           <div className="flex-grow-1 overflow-hidden">
@@ -151,11 +151,11 @@ export const UserDashboardBasicDetails = () => {
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </div> */}
                   </div>
 
                   <div className="col-xl-3 col-md-6">
-                    <div className="card card-animate">
+                    {/* <div className="card card-animate">
                       <div className="card-body">
                         <div className="d-flex align-items-center">
                           <div className="flex-grow-1 overflow-hidden">
@@ -185,10 +185,10 @@ export const UserDashboardBasicDetails = () => {
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </div> */}
                   </div>
                   <div className="col-xl-3 col-md-6">
-                    <div className="card card-animate">
+                    {/* <div className="card card-animate">
                       <div className="card-body">
                         <div className="d-flex align-items-center">
                           <div className="flex-grow-1 overflow-hidden">
@@ -218,10 +218,10 @@ export const UserDashboardBasicDetails = () => {
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </div> */}
                   </div>
                   <div className="col-xl-3 col-md-6">
-                    <div className="card card-animate">
+                    {/* <div className="card card-animate">
                       <div className="card-body">
                         <div className="d-flex align-items-center">
                           <div className="flex-grow-1 overflow-hidden">
@@ -251,10 +251,10 @@ export const UserDashboardBasicDetails = () => {
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </div> */}
                   </div>
                   <div className="col-xl-3 col-md-6">
-                    <div className="card card-animate">
+                    {/* <div className="card card-animate">
                       <div className="card-body">
                         <div className="d-flex align-items-center">
                           <div className="flex-grow-1 overflow-hidden">
@@ -284,7 +284,7 @@ export const UserDashboardBasicDetails = () => {
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               </>

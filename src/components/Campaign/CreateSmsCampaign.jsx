@@ -33,6 +33,15 @@ export const normalizeIndianMobile = (raw) => {
   return `91${withoutTrunk}`;
 };
 
+// Formats a Date (or datetime-local string) as "YYYY-MM-DDTHH:mm:ss.sssZ"
+// e.g. "2026-07-20T03:14:43.110Z"
+const toIsoScheduleString = (dateLike) => {
+  if (!dateLike) return null;
+  const d = new Date(dateLike);
+  if (isNaN(d.getTime())) return null;
+  return d.toISOString();
+};
+
 const StepHeader = ({ step, title, subtitle, done }) => (
   <div className="d-flex align-items-center gap-3 mb-3">
     <span className={`step-badge ${done ? "step-badge-done" : ""}`}>
@@ -70,6 +79,10 @@ export const CreateSmsCampaign = () => {
 
   const [sortField, setSortField] = useState("rating");
   const [sortDir, setSortDir] = useState("desc");
+
+  // --- Manual audience entry (always available, entirely optional) ---
+  const [manualNumbersText, setManualNumbersText] = useState("");
+  const [manualPhones, setManualPhones] = useState(new Set());
 
   const [templates, setTemplates] = useState([]);
   const [templateId, setTemplateId] = useState("");
@@ -277,7 +290,50 @@ export const CreateSmsCampaign = () => {
     XLSX.writeFile(workbook, `${safeCategory}_${safeArea}.xlsx`);
   };
 
-  const recipientNumbers = useMemo(() => [...selectedPhones], [selectedPhones]);
+  // --- Manual number parsing/apply ---
+  const parseManualNumbers = (text) => {
+    const parts = text.split(/[\n,;\s]+/).map((p) => p.trim()).filter(Boolean);
+    const valid = new Set();
+    const invalid = [];
+    parts.forEach((p) => {
+      const normalized = normalizeIndianMobile(p);
+      if (normalized) valid.add(normalized);
+      else invalid.push(p);
+    });
+    return { valid, invalid };
+  };
+
+  const applyManualNumbers = () => {
+    if (!manualNumbersText.trim()) {
+      setManualPhones(new Set());
+      return;
+    }
+    const { valid, invalid } = parseManualNumbers(manualNumbersText);
+    setManualPhones(valid);
+    if (invalid.length > 0) {
+      Swal.fire(
+        "Some numbers skipped",
+        `${invalid.length} number(s) were invalid and ignored: ${invalid.slice(0, 10).join(", ")}${invalid.length > 10 ? "..." : ""}`,
+        "warning"
+      );
+    }
+  };
+
+  const removeManualPhone = (phone) => {
+    setManualPhones((prev) => {
+      const next = new Set(prev);
+      next.delete(phone);
+      return next;
+    });
+  };
+
+  const getRecipientNumbers = () => [...new Set([...selectedPhones, ...manualPhones])];
+
+  const recipientNumbers = useMemo(
+    () => getRecipientNumbers(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedPhones, manualPhones]
+  );
 
   const handleTemplateChange = (id) => {
     setTemplateId(id);
@@ -328,6 +384,8 @@ export const CreateSmsCampaign = () => {
     setMessage("");
     setIsScheduled(false);
     setScheduleDate("");
+    setManualNumbersText("");
+    setManualPhones(new Set());
   };
 
   const handleSubmit = async () => {
@@ -336,14 +394,21 @@ export const CreateSmsCampaign = () => {
       return;
     }
 
+    const mobileNumbers = getRecipientNumbers();
+    // if (mobileNumbers.length === 0) {
+    //   Swal.fire("Error", "Please select or enter at least one recipient", "error");
+    //   return;
+    // }
+
     const payload = {
       campaignName: campaignName || "",
-      mobileNumbers: recipientNumbers,
+      mobileNumbers,
       message: message || "",
       templateId: templateId || "",
       peid: selectedTemplate?.peid || selectedTemplate?.peId || "",
       headerId: selectedTemplate?.headerId || selectedTemplate?.headerid || "",
-      scheduleDate: isScheduled && scheduleDate ? new Date(scheduleDate).toISOString() : null,
+      // e.g. "2026-07-20T03:14:43.110Z"
+      scheduleDate: isScheduled && scheduleDate ? toIsoScheduleString(scheduleDate) : null,
       isScheduled,
       categoryId: categoryId ? Number(categoryId) : null,
       locationId: getLocationIdForArea(selectedArea),
@@ -558,6 +623,58 @@ export const CreateSmsCampaign = () => {
           font-size: 1.5rem;
           color: var(--sms-faint);
         }
+        .sms-campaign .segmented {
+          display: inline-flex;
+          border: 1px solid var(--sms-border);
+          border-radius: 10px;
+          overflow: hidden;
+        }
+        .sms-campaign .segmented button {
+          border: none;
+          background: #fff;
+          padding: 0.5rem 1rem;
+          font-size: 0.83rem;
+          font-weight: 600;
+          color: var(--sms-muted);
+          cursor: pointer;
+        }
+        .sms-campaign .segmented button.active {
+          background: var(--sms-primary);
+          color: #fff;
+        }
+        .sms-campaign .recipients-list {
+          max-height: 220px;
+          overflow-y: auto;
+          border: 1px solid var(--sms-border);
+          border-radius: 12px;
+          background: var(--sms-bg);
+        }
+        .sms-campaign .recipient-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 0.5rem;
+          padding: 0.5rem 0.85rem;
+          border-bottom: 1px solid var(--sms-border);
+          background: #fff;
+        }
+        .sms-campaign .recipient-row:last-child { border-bottom: none; }
+        .sms-campaign .recipient-remove {
+          border: none;
+          background: transparent;
+          color: var(--sms-muted);
+          width: 24px;
+          height: 24px;
+          flex-shrink: 0;
+          border-radius: 6px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .sms-campaign .recipient-remove:hover {
+          background: #FDECEC;
+          color: #D64545;
+        }
         .sms-campaign .phone-frame {
           background: #111;
           border-radius: 32px;
@@ -659,7 +776,7 @@ export const CreateSmsCampaign = () => {
               <StepHeader
                 step={1}
                 title="Campaign details & audience"
-                subtitle="Businesses matching your category and location load automatically"
+                subtitle="Businesses matching your category and location load automatically. You can also add specific numbers manually — entirely optional."
                 done={audienceDone}
               />
               <div className="row g-3">
@@ -676,6 +793,53 @@ export const CreateSmsCampaign = () => {
                   <label className="form-label">Campaign type</label>
                   <input className="form-control" value="SMS" readOnly disabled />
                 </div>
+              </div>
+
+              <div className="mt-3">
+                <label className="form-label">Manual phone numbers (optional)</label>
+                <textarea
+                  className="form-control"
+                  rows={3}
+                  placeholder="Enter numbers separated by comma, space, or new line e.g. 9876543210, 9123456789"
+                  value={manualNumbersText}
+                  onChange={(e) => setManualNumbersText(e.target.value)}
+                />
+                <div className="d-flex align-items-center gap-2 mt-2 flex-wrap">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary btn-sm"
+                    onClick={applyManualNumbers}
+                  >
+                    <i className="ri-check-line me-1" />
+                    Validate & apply
+                  </button>
+                  {manualPhones.size > 0 && (
+                    <span className="sms-muted small">
+                      {manualPhones.size} valid number{manualPhones.size !== 1 ? "s" : ""} added
+                    </span>
+                  )}
+                </div>
+
+                {manualPhones.size > 0 && (
+                  <div className="recipients-list mt-2">
+                    {[...manualPhones].map((phone) => (
+                      <div className="recipient-row" key={phone}>
+                        <span>{phone}</span>
+                        <button
+                          type="button"
+                          className="recipient-remove"
+                          onClick={() => removeManualPhone(phone)}
+                          title="Remove"
+                        >
+                          <i className="ri-close-line" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="row g-3 mt-1">
                 <div className="col-md-6">
                   <label className="form-label">Category</label>
                   <select
@@ -1051,7 +1215,7 @@ export const CreateSmsCampaign = () => {
               </div>
 
               <small className="sms-muted d-block mt-3">
-                Audience comes from the selected category and location. The business list stays
+                Audience comes from the selected category/location, manual entry, or both. The business list stays
                 hidden until you choose to view it. {isScheduled ? "This campaign will send at the scheduled time." : "This campaign sends immediately."}
               </small>
             </div>
