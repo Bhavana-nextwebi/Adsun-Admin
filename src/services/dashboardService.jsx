@@ -48,3 +48,10 @@ export const fetchDashboardTopOrders = async () => {
   });
   return response.data;
 };
+
+export const fetchDashboardSummary = async () => {
+  const response = await axiosInstance.get("dashboard/summary", {
+    headers,
+  });
+  return response.data;
+};
