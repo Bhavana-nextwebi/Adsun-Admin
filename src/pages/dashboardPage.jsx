@@ -21,7 +21,7 @@ export const DashboardPage = () => {
                   //  setSectionDisabled(false);
                 } else {
                    // setSectionDisabled(true);
-                    navigate('/user-dashboard'); 
+                    navigate('/dashboard'); 
                 }
             } catch (error) {
                 handleErrors(error);
