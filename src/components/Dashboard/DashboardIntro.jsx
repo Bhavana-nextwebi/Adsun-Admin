@@ -33,6 +33,20 @@ const STAT_CONFIG = [
         gradient: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
         accent: '#06b6d4',
     },
+    {
+        key: 'totalWhatsappCampaign',
+        label: 'WhatsApp Campaigns',
+        icon: 'ri-whatsapp-line',
+        gradient: 'linear-gradient(135deg, #25d366 0%, #128c7e 100%)',
+        accent: '#25d366',
+    },
+    {
+        key: 'totalSmsCampaign',
+        label: 'SMS Campaigns',
+        icon: 'ri-message-2-line',
+        gradient: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
+        accent: '#ec4899',
+    },
 ];
 
 export const DashboardIntro = () => {
@@ -59,19 +73,19 @@ export const DashboardIntro = () => {
             }
         };
 
-      const fetchStats = async () => {
-    try {
-        const res = await fetchDashboardSummary();
-        console.log('dashboard summary response:', res); // remove after confirming
-        if (res.isSuccess) {
-            setStats(res.result);
-        }
-    } catch (error) {
-        handleErrors(error);
-    } finally {
-        setStatsLoading(false);
-    }
-};
+        const fetchStats = async () => {
+            try {
+                const res = await fetchDashboardSummary();
+                if (res.isSuccess) {
+                    setStats(res.result);
+                }
+            } catch (error) {
+                handleErrors(error);
+            } finally {
+                setStatsLoading(false);
+            }
+        };
+
         fetchUserData();
         fetchStats();
     }, [navigate]);
