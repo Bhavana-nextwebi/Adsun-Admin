@@ -52,7 +52,7 @@ export const DashboardIntro = () => {
                     setUserName(userData.data.result.userName);
                 } else {
                     setUserName(userData.data.result.userName);
-                    navigate('/user-dashboard');
+                    navigate('/dashboard');
                 }
             } catch (error) {
                 handleErrors(error);
