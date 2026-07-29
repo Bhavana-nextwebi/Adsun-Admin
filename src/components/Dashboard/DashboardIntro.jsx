@@ -11,6 +11,7 @@ const STAT_CONFIG = [
         icon: 'ri-user-3-line',
         gradient: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
         accent: '#6366f1',
+        path: '/app-user',
     },
     {
         key: 'totalSavedSearches',
@@ -18,6 +19,7 @@ const STAT_CONFIG = [
         icon: 'ri-search-line',
         gradient: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
         accent: '#22c55e',
+        path: '/google-search/savedsearch',
     },
     {
         key: 'totalCategories',
@@ -25,6 +27,7 @@ const STAT_CONFIG = [
         icon: 'ri-price-tag-3-line',
         gradient: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
         accent: '#f59e0b',
+        path: '/category-master',
     },
     {
         key: 'totalSharedLocations',
@@ -32,6 +35,7 @@ const STAT_CONFIG = [
         icon: 'ri-map-pin-2-line',
         gradient: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
         accent: '#06b6d4',
+        path: '/google-search/locations',
     },
     {
         key: 'totalWhatsappCampaign',
@@ -39,6 +43,7 @@ const STAT_CONFIG = [
         icon: 'ri-whatsapp-line',
         gradient: 'linear-gradient(135deg, #25d366 0%, #128c7e 100%)',
         accent: '#25d366',
+        path: '/whatsapp/scheduled-campaign',
     },
     {
         key: 'totalSmsCampaign',
@@ -46,6 +51,7 @@ const STAT_CONFIG = [
         icon: 'ri-message-2-line',
         gradient: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
         accent: '#ec4899',
+        path: '/sms/scheduled-campaign',
     },
 ];
 
@@ -101,6 +107,12 @@ export const DashboardIntro = () => {
         }
     };
 
+    const handleCardClick = (path) => {
+        if (path) {
+            navigate(path);
+        }
+    };
+
     return (
         <>
             <div className="row mb-3 pb-1">
@@ -123,11 +135,21 @@ export const DashboardIntro = () => {
                     <div className="col-xl-3 col-md-6" key={card.key}>
                         <div
                             className="card border-0 h-100"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => handleCardClick(card.path)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    handleCardClick(card.path);
+                                }
+                            }}
                             style={{
                                 borderRadius: '14px',
                                 boxShadow: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
                                 borderTop: `3px solid ${card.accent}`,
                                 transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                                cursor: card.path ? 'pointer' : 'default',
                             }}
                             onMouseEnter={(e) => {
                                 e.currentTarget.style.transform = 'translateY(-3px)';

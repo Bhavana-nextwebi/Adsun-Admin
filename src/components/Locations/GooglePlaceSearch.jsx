@@ -18,7 +18,7 @@ export const GooglePlaceSearch = () => {
 
   // CATEGORY
   const [searchText, setSearchText] =
-    useState("");
+    useState("All");
 
   // AUTO FILLED FROM NAVIGATION
   const [latitude, setLatitude] =
@@ -229,7 +229,7 @@ navigate(url, {
 };
   // RESET
   const handleReset = () => {
-    setSearchText("");
+    setSearchText("All");
     setRadiusKm("1");
     setFormErrors({});
   };
@@ -285,9 +285,8 @@ navigate(url, {
                     )
                   }
                 >
-                  <option value="">
-                    Select
-                    Category
+                  <option value="All">
+                    All
                   </option>
 
                   {categories.map(
