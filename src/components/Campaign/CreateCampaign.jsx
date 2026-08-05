@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Swal from "sweetalert2";
 import * as XLSX from "xlsx";
 import { getAreasByCategory } from "../../services/searchLocationsService";
@@ -19,6 +19,9 @@ const HEADER_ATTACHMENT_META = {
 
 const BUSINESS_PAGE_SIZE = 100;
 const AUTO_SEARCH_DEBOUNCE_MS = 400;
+
+
+const formatAreaLabel = (opt) => [opt.state, opt.city, opt.area].filter(Boolean).join(", ");
 
 const countTemplatePlaceholders = (message) => {
   const matches = (message || "").match(/\{\{\d+\}\}|\{\d+\}/g);
@@ -71,12 +74,17 @@ export const CreateCampaign = () => {
   const [campaignName, setCampaignName] = useState("");
 
   const [categories, setCategories] = useState([]);
-  const [categoryId, setCategoryId] = useState("");
-  const [categoryName, setCategoryName] = useState("");
+  const [categoryId, setCategoryId] = useState("All");
+  const [categoryName, setCategoryName] = useState("All");
 
   const [areaOptions, setAreaOptions] = useState([]);
   const [selectedArea, setSelectedArea] = useState("");
   const [areasLoading, setAreasLoading] = useState(false);
+
+  // --- Location search/autocomplete (replaces the long plain <select>) ---
+  const [locationQuery, setLocationQuery] = useState("");
+  const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
+  const locationBoxRef = useRef(null);
 
   const [businesses, setBusinesses] = useState([]);
   const [businessLoading, setBusinessLoading] = useState(false);
@@ -136,22 +144,45 @@ export const CreateCampaign = () => {
   }, []);
 
   const handleCategoryChange = (id) => {
-    setCategoryId(id);
-    const cat = categories.find((c) => String(c.id) === String(id));
-    setCategoryName(cat?.categoryName || "");
-  };
+  setCategoryId(id);
+
+  if (id === "All") {
+    setCategoryName("All");
+    return;
+  }
+
+  const cat = categories.find((c) => String(c.id) === String(id));
+  setCategoryName(cat?.categoryName || "");
+};
+
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (locationBoxRef.current && !locationBoxRef.current.contains(e.target)) {
+        setLocationDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
 
   useEffect(() => {
     setSelectedArea("");
     setAreaOptions([]);
+    setLocationQuery("");
 
-    if (!categoryName) return;
+    // categoryId is always set (defaults to "all"), so this only bails out
+    // before the initial category/template fetch has resolved anything.
+    if (!categoryId) return;
 
     let cancelled = false;
 
     const loadAreas = async () => {
       setAreasLoading(true);
       try {
+        // categoryName === "" means "All Categories" — assumes getAreasByCategory
+        // returns areas across every category when passed an empty string.
+        // Verify this against the actual API contract; if it needs a different
+        // signal for "all", swap categoryName here for that value.
         const res = await getAreasByCategory(categoryName);
         if (cancelled) return;
 
@@ -186,7 +217,7 @@ export const CreateCampaign = () => {
     return () => {
       cancelled = true;
     };
-  }, [categoryName]);
+  }, [categoryId, categoryName]);
 
   const runBusinessSearch = async (category, area) => {
     setBusinessLoading(true);
@@ -218,7 +249,9 @@ export const CreateCampaign = () => {
     setVisibleCount(BUSINESS_PAGE_SIZE);
     setNumbersRevealed(false);
 
-    if (!categoryName || !selectedArea) return;
+    // A specific location is still required to search; categoryName may
+    // legitimately be "" here when "All Categories" is selected.
+    if (!categoryId || !selectedArea) return;
 
     const timer = setTimeout(() => {
       runBusinessSearch(categoryName, selectedArea);
@@ -285,6 +318,25 @@ export const CreateCampaign = () => {
     });
   };
 
+  const filteredAreaOptions = useMemo(() => {
+    const q = locationQuery.trim().toLowerCase();
+    if (!q) return areaOptions;
+    return areaOptions.filter((opt) =>
+      `${opt.area} ${opt.city} ${opt.state}`.toLowerCase().includes(q)
+    );
+  }, [areaOptions, locationQuery]);
+
+  const selectLocation = (opt) => {
+    setSelectedArea(opt.area);
+    setLocationQuery(formatAreaLabel(opt));
+    setLocationDropdownOpen(false);
+  };
+
+  const clearLocation = () => {
+    setSelectedArea("");
+    setLocationQuery("");
+  };
+
   // --- Manual number parsing/apply ---
   const parseManualNumbers = (text) => {
     const parts = text.split(/[\n,;\s]+/).map((p) => p.trim()).filter(Boolean);
@@ -347,9 +399,11 @@ export const CreateCampaign = () => {
   };
 
   const resetForm = () => {
-    setCategoryId("");
-    setCategoryName("");
+     setCategoryId("All");
+  setCategoryName("All");
     setSelectedArea("");
+    setLocationQuery("");
+    setLocationDropdownOpen(false);
     setBusinesses([]);
     setSelectedPhones(new Set());
     setBusinessSearched(false);
@@ -838,6 +892,50 @@ export const CreateCampaign = () => {
           font-size: 0.8rem;
           margin-bottom: 0.4rem;
         }
+        .wa-campaign .location-combo {
+          position: relative;
+        }
+        .wa-campaign .location-combo .input-group-text {
+          border-color: var(--wa-border);
+        }
+        .wa-campaign .location-dropdown {
+          position: absolute;
+          top: calc(100% + 4px);
+          left: 0;
+          right: 0;
+          background: #fff;
+          border: 1px solid var(--wa-border);
+          border-radius: 10px;
+          box-shadow: 0 10px 28px rgba(7, 94, 84, 0.14);
+          max-height: 260px;
+          overflow-y: auto;
+          z-index: 20;
+        }
+        .wa-campaign .location-option {
+          padding: 0.5rem 0.75rem;
+          cursor: pointer;
+          border-bottom: 1px solid var(--wa-border);
+        }
+        .wa-campaign .location-option:last-child {
+          border-bottom: none;
+        }
+        .wa-campaign .location-option:hover,
+        .wa-campaign .location-option.active {
+          background: var(--wa-accent-soft);
+        }
+        .wa-campaign .location-option-main {
+          font-weight: 600;
+          font-size: 0.85rem;
+        }
+        .wa-campaign .location-option-sub {
+          font-size: 0.72rem;
+          color: var(--wa-muted);
+        }
+        .wa-campaign .location-empty {
+          padding: 0.6rem 0.75rem;
+          font-size: 0.8rem;
+          color: var(--wa-muted);
+        }
         .wa-campaign .phone-inputbar {
           background: #f0f0f0;
           padding: 0.5rem 0.75rem;
@@ -937,15 +1035,13 @@ export const CreateCampaign = () => {
 
               <div className="row g-3 mt-1">
                 <div className="col-md-6">
-                  <label className="form-label">
-                    Category <span className="text-danger">*</span>
-                  </label>
+                  <label className="form-label">Category</label>
                   <select
                     className="form-select"
                     value={categoryId}
                     onChange={(e) => handleCategoryChange(e.target.value)}
                   >
-                    <option value="">Select category</option>
+                    <option value="All">All</option>
                     {categories.map((cat) => (
                       <option key={cat.id} value={cat.id}>
                         {cat.categoryName}
@@ -955,26 +1051,70 @@ export const CreateCampaign = () => {
                 </div>
                 <div className="col-md-6">
                   <label className="form-label">Location</label>
-                  <select
-                    className="form-select"
-                    value={selectedArea}
-                    onChange={(e) => setSelectedArea(e.target.value)}
-                    disabled={!categoryId || areasLoading}
-                  >
-                    <option value="">
-                      {!categoryId
-                        ? "Select a category first"
-                        : areasLoading
-                        ? "Loading areas..."
-                        : "All locations"}
-                    </option>
-                    {areaOptions.map((opt) => (
-                      <option key={opt.area} value={opt.area}>
-                        {[opt.state, opt.city, opt.area].filter(Boolean).join(", ")}
-                      </option>
-                    ))}
-                  </select>
-                  {categoryId && !areasLoading && areaOptions.length === 0 && (
+                  <div className="location-combo" ref={locationBoxRef}>
+                    <div className="input-group">
+                      <span className="input-group-text bg-white">
+                        <i className="ri-map-pin-line" />
+                      </span>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder={areasLoading ? "Loading areas..." : "Search location..."}
+                        value={locationQuery}
+                        disabled={areasLoading}
+                        onFocus={() => setLocationDropdownOpen(true)}
+                        onChange={(e) => {
+                          setLocationQuery(e.target.value);
+                          setLocationDropdownOpen(true);
+                          if (selectedArea) setSelectedArea("");
+                        }}
+                      />
+                      {selectedArea && (
+                        <button
+                          type="button"
+                          className="btn btn-outline-secondary"
+                          onClick={clearLocation}
+                          title="Clear location"
+                        >
+                          <i className="ri-close-line" />
+                        </button>
+                      )}
+                    </div>
+
+                    {locationDropdownOpen && !areasLoading && (
+                      <div className="location-dropdown">
+                        <div
+                          className={`location-option ${!selectedArea ? "active" : ""}`}
+                          onClick={() => {
+                            setSelectedArea("");
+                            setLocationQuery("");
+                            setLocationDropdownOpen(false);
+                          }}
+                        >
+                          <div className="location-option-main">All locations</div>
+                        </div>
+                        {filteredAreaOptions.length === 0 ? (
+                          <div className="location-empty">No matching locations</div>
+                        ) : (
+                          filteredAreaOptions.map((opt) => (
+                            <div
+                              key={opt.area}
+                              className={`location-option ${selectedArea === opt.area ? "active" : ""}`}
+                              onClick={() => selectLocation(opt)}
+                            >
+                              <div className="location-option-main">{opt.area}</div>
+                              {(opt.city || opt.state) && (
+                                <div className="location-option-sub">
+                                  {[opt.city, opt.state].filter(Boolean).join(", ")}
+                                </div>
+                              )}
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {!areasLoading && areaOptions.length === 0 && (
                     <small className="wa-muted fst-italic d-block mt-1">
                       No areas found for this category.
                     </small>
@@ -982,9 +1122,9 @@ export const CreateCampaign = () => {
                 </div>
               </div>
 
-              {(!categoryId || !selectedArea) && (
+              {!selectedArea && (
                 <div className="wa-muted small fst-italic mt-3">
-                  Select a category and a location to load matching businesses.
+                  Search and pick a location to load matching businesses.
                 </div>
               )}
 

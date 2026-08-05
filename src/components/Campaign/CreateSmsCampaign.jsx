@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Swal from "sweetalert2";
 import * as XLSX from "xlsx";
 import { getAreasByCategory } from "../../services/searchLocationsService";
@@ -12,6 +12,8 @@ import { countSmsPlaceholders } from "../../utils/validation";
 
 const BUSINESS_PAGE_SIZE = 100;
 const AUTO_SEARCH_DEBOUNCE_MS = 400;
+
+//const formatAreaLabel = (opt) => [opt.state, opt.city, opt.area].filter(Boolean).join(", ");
 
 export const normalizeIndianMobile = (raw) => {
   if (!raw) return null;
@@ -58,13 +60,18 @@ export const CreateSmsCampaign = () => {
   const [campaignName, setCampaignName] = useState("");
 
   const [categories, setCategories] = useState([]);
-  const [categoryId, setCategoryId] = useState("");
-  const [categoryName, setCategoryName] = useState("");
+  const [categoryId, setCategoryId] = useState("All");
+  const [categoryName, setCategoryName] = useState("All");
 
   const [locations, setLocations] = useState([]);
   const [areaOptions, setAreaOptions] = useState([]);
   const [selectedArea, setSelectedArea] = useState("");
   const [areasLoading, setAreasLoading] = useState(false);
+
+  // --- Location search/autocomplete (replaces the long plain <select>) ---
+ const [locationQuery, setLocationQuery] = useState("");
+const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
+  const locationBoxRef = useRef(null);
 
   const [businesses, setBusinesses] = useState([]);
   const [businessLoading, setBusinessLoading] = useState(false);
@@ -117,26 +124,49 @@ export const CreateSmsCampaign = () => {
       }
     };
     load();
-  }, []);
+  }, [categoryId]);
 
   const handleCategoryChange = (id) => {
-    setCategoryId(id);
-    const cat = categories.find((c) => String(c.id) === String(id));
-    setCategoryName(cat?.categoryName || "");
-  };
+  setCategoryId(id);
+
+  if (id === "All") {
+    setCategoryName("All");
+    return;
+  }
+
+  const cat = categories.find((c) => String(c.id) === String(id));
+  setCategoryName(cat?.categoryName || "");
+};
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (locationBoxRef.current && !locationBoxRef.current.contains(e.target)) {
+        setLocationDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
 
   useEffect(() => {
     setSelectedArea("");
     setLocations([]);
     setAreaOptions([]);
+ setLocationQuery("");
 
-    if (!categoryName) return;
+    // categoryId is always set (defaults to "all"), so this only bails out
+    // before the initial category/template fetch has resolved anything.
+    if (!categoryId) return;
 
     let cancelled = false;
 
     const loadAreas = async () => {
       setAreasLoading(true);
       try {
+        // categoryName === "" means "All Categories" — assumes getAreasByCategory
+        // returns areas across every category when passed an empty string.
+        // Verify this against the actual API contract; if it needs a different
+        // signal for "all", swap categoryName here for that value.\
+       
         const res = await getAreasByCategory(categoryName);
         if (cancelled) return;
 
@@ -173,7 +203,7 @@ export const CreateSmsCampaign = () => {
     return () => {
       cancelled = true;
     };
-  }, [categoryName]);
+  }, [categoryName,categoryId]);
 
   const runBusinessSearch = async (category, area) => {
     setBusinessLoading(true);
@@ -362,6 +392,15 @@ export const CreateSmsCampaign = () => {
     setMessage(rendered);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [placeholders, templateId]);
+  const filteredLocations = useMemo(() => {
+  if (!locationQuery.trim()) return areaOptions;
+
+  return areaOptions.filter((item) =>
+    `${item.state} ${item.city} ${item.area}`
+      .toLowerCase()
+      .includes(locationQuery.toLowerCase())
+  );
+}, [locationQuery, areaOptions]);
 
   const getLocationIdForArea = (area) => {
     if (!area) return 0;
@@ -371,8 +410,8 @@ export const CreateSmsCampaign = () => {
 
   const resetForm = () => {
     setCampaignName("");
-    setCategoryId("");
-    setCategoryName("");
+    setCategoryId("All");
+  setCategoryName("All");
     setSelectedArea("");
     setBusinesses([]);
     setSelectedPhones(new Set());
@@ -386,6 +425,8 @@ export const CreateSmsCampaign = () => {
     setScheduleDate("");
     setManualNumbersText("");
     setManualPhones(new Set());
+    setLocationQuery("");
+setLocationDropdownOpen(false);
   };
 
   const handleSubmit = async () => {
@@ -583,6 +624,7 @@ export const CreateSmsCampaign = () => {
           border-radius: 10px;
           padding: 0.5rem 0.75rem;
         }
+          
         .sms-campaign .placeholder-slot label {
           font-size: 0.68rem;
           font-weight: 700;
@@ -658,6 +700,31 @@ export const CreateSmsCampaign = () => {
           border-bottom: 1px solid var(--sms-border);
           background: #fff;
         }
+          .location-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1050;
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  margin-top: 4px;
+  max-height: 280px;
+  overflow-y: auto;
+  box-shadow: 0 8px 20px rgba(0,0,0,.12);
+}
+
+.location-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.location-item:hover {
+  background: #f5f5f5;
+}
         .sms-campaign .recipient-row:last-child { border-bottom: none; }
         .sms-campaign .recipient-remove {
           border: none;
@@ -754,6 +821,49 @@ export const CreateSmsCampaign = () => {
           background: var(--sms-primary);
           color: #fff;
         }
+          .location-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 999;
+
+  background: #fff;
+  border: 1px solid #e4e7ec;
+  border-radius: 14px;
+
+  box-shadow:
+      0 12px 30px rgba(0,0,0,.08);
+
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.location-item {
+  display: flex;
+  flex-direction: column;
+
+  padding: 12px 16px;
+  cursor: pointer;
+
+  transition: .2s;
+}
+
+.location-item:hover {
+  background: #f7f9fc;
+}
+
+.location-item + .location-item {
+  border-top: 1px solid #f0f2f5;
+}
+
+.location-item strong{
+    font-size:15px;
+}
+
+.location-item small{
+    color:#6c757d;
+}
       `}</style>
 
       <div className="page-shell">
@@ -847,7 +957,7 @@ export const CreateSmsCampaign = () => {
                     value={categoryId}
                     onChange={(e) => handleCategoryChange(e.target.value)}
                   >
-                    <option value="">Select category</option>
+                    <option value="All">All</option>
                     {categories.map((cat) => (
                       <option key={cat.id} value={cat.id}>
                         {cat.categoryName}
@@ -856,33 +966,67 @@ export const CreateSmsCampaign = () => {
                   </select>
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label">Location</label>
-                  <select
-                    className="form-select"
-                    value={selectedArea}
-                    onChange={(e) => setSelectedArea(e.target.value)}
-                    disabled={!categoryId || areasLoading}
-                  >
-                    <option value="">
-                      {!categoryId
-                        ? "Select a category first"
-                        : areasLoading
-                        ? "Loading areas..."
-                        : "All locations"}
-                    </option>
-                    {areaOptions.map((opt) => (
-                      <option key={opt.area} value={opt.area}>
-                        {[opt.state, opt.city, opt.area].filter(Boolean).join(", ")}
-                      </option>
-                    ))}
-                  </select>
-                  {categoryId && !areasLoading && areaOptions.length === 0 && (
-                    <small className="sms-muted fst-italic d-block mt-1">
-                      No areas found for this category.
-                    </small>
-                  )}
-                </div>
+  <label className="form-label">Location</label>
+
+
+                <div className="position-relative" ref={locationBoxRef}>
+  <input
+    type="text"
+    className="form-control"
+    placeholder={areasLoading ? "Loading..." : "Search location..."}
+    value={locationQuery}
+    disabled={areasLoading}
+    onFocus={() => setLocationDropdownOpen(true)}
+    onChange={(e) => {
+      setLocationQuery(e.target.value);
+      setLocationDropdownOpen(true);
+    }}
+  />
+ 
+
+ {locationDropdownOpen && (
+  <div className="location-dropdown">
+
+    <div
+      className="location-item all-location"
+      onClick={() => {
+        setSelectedArea("");
+        setLocationQuery("");
+        setLocationDropdownOpen(false);
+      }}
+    >
+      <strong>All locations</strong>
+    </div>
+
+    {filteredLocations.map((loc) => (
+      <div
+        key={loc.area}
+        className="location-item"
+        onClick={() => {
+          setSelectedArea(loc.area);
+          setLocationQuery(loc.area);
+          setLocationDropdownOpen(false);
+        }}
+      >
+        <div className="fw-semibold">{loc.area}</div>
+
+        <small className="text-muted">
+          {loc.city}, {loc.state}
+        </small>
+      </div>
+    ))}
+
+    {!filteredLocations.length && (
+      <div className="location-item text-muted">
+        No locations found
+      </div>
+    )}
+
+  </div>
+)}
+</div>
               </div>
+            </div>
 
               {(!categoryId || !selectedArea) && (
                 <div className="sms-muted small fst-italic mt-3">
