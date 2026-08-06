@@ -198,6 +198,7 @@ export const CreateCampaign = () => {
               area,
               state: row.state?.trim() || "",
               city: row.city?.trim() || "",
+              userName: row.userName?.trim() || "",
             });
           }
         });
@@ -945,6 +946,14 @@ export const CreateCampaign = () => {
           font-size: 0.75rem;
           color: var(--wa-muted);
         }
+          .wa-campaign .location-option-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 0.5rem;
+  color: var(--wa-teal);
+  font-weight: 600;
+}
       `}</style>
 
       <div className="page-shell">
@@ -1097,19 +1106,24 @@ export const CreateCampaign = () => {
                           <div className="location-empty">No matching locations</div>
                         ) : (
                           filteredAreaOptions.map((opt) => (
-                            <div
-                              key={opt.area}
-                              className={`location-option ${selectedArea === opt.area ? "active" : ""}`}
-                              onClick={() => selectLocation(opt)}
-                            >
-                              <div className="location-option-main">{opt.area}</div>
-                              {(opt.city || opt.state) && (
-                                <div className="location-option-sub">
-                                  {[opt.city, opt.state].filter(Boolean).join(", ")}
-                                </div>
-                              )}
-                            </div>
-                          ))
+  <div
+    key={opt.area}
+    className={`location-option ${selectedArea === opt.area ? "active" : ""}`}
+    onClick={() => selectLocation(opt)}
+  >
+    <div className="location-option-main">{opt.area}</div>
+    {(opt.city || opt.state || opt.userName) && (
+      <div className="location-option-sub">
+        {[opt.city, opt.state].filter(Boolean).join(", ")}
+        {opt.userName && (
+          <span className="location-option-user">
+            <i className="ri-user-3-line" /> {opt.userName}
+          </span>
+        )}
+      </div>
+    )}
+  </div>
+))
                         )}
                       </div>
                     )}

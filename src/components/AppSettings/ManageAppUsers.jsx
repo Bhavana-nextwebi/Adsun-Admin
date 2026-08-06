@@ -6,7 +6,7 @@ import TableHeader from "../Common/TableComponent/TableHeader";
 import EntriesDropdown from "../Common/TableComponent/EntriesDropdown";
 import TablesRow from "../Common/TableComponent/TablesRow";
 import { Pagination } from "../Common/TableComponent/Pagination";
-import { getAppUsers, deleteAppUser,ChangePassword } from "../../services/appUserServices";
+import { getAppUsers, deleteAppUser, ChangePassword, blockUnblockAppUser } from "../../services/appUserServices";
 import { Loading } from "../Common/OtherElements/Loading";
 import "react-toastify/dist/ReactToastify.css";
 import Swal from "sweetalert2";
@@ -17,6 +17,31 @@ import { handleErrors } from "../../utils/errorHandler";
 import { usePageLevelAccess } from "../../hooks/usePageLevelAccess";
 import { Eye, EyeOff } from "lucide-react";
 
+// ⚠️ IMPORTANT: the GetallAppUsers API returns `status` as a STRING
+// (e.g. "Active"/"Inactive", "true"/"false", or "1"/"0" — confirm the
+// exact values via the console log on first load).
+// A naive `!!u.status` is WRONG here because `!!"false"` is `true` in JS
+// (any non-empty string is truthy) — that was the root cause of the
+// toggle always showing/behaving incorrectly.
+//
+// Update the `truthyValues` list below once you've confirmed the exact
+// string your API sends (e.g. add "unblocked" or remove ones that don't apply).
+const parseStatus = (value) => {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value === 1;
+  if (typeof value === "string") {
+    return value.trim().toLowerCase() === "active";
+  }
+  return false;
+};
+
+// Normalizes a raw user record from the API into a consistent shape.
+const normalizeUser = (u) => ({
+  ...u,
+  status: parseStatus(u.status),
+  userGuid: u.userGuid ?? u.userGUID ?? u.guid ?? u.userId ?? u.id,
+});
+
 export const ManageAppUser = () => {
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -25,12 +50,13 @@ export const ManageAppUser = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [pageAccessDetails, setPageAccessDetails] = useState([]);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-const [selectedUserGuid, setSelectedUserGuid] = useState("");
-const [newPassword, setNewPassword] = useState("");
-const [confirmPassword, setConfirmPassword] = useState("");
-const [passwordLoading, setPasswordLoading] = useState(false);
-const [showNewPassword, setShowNewPassword] = useState(false);
-const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [selectedUserGuid, setSelectedUserGuid] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [statusLoadingId, setStatusLoadingId] = useState(null);
 
   const PageLevelAccessurl = "app-user";
   const navigate = useNavigate();
@@ -50,7 +76,24 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const fetchData = async () => {
       try {
         const response = await getAppUsers();
-        setManageAppUsers(response.data.result);
+        const rawUsers = response.data.result || [];
+
+        // ⚠️ Debug: check this to confirm the exact string value(s) your
+        // API returns for `status` (e.g. "Active" vs "active" vs "1").
+        // Update the `truthyValues` array in parseStatus() above to match,
+        // then remove this console.log once confirmed working.
+        if (rawUsers[0]) {
+          console.log(
+            "Sample status value:",
+            rawUsers[0].status,
+            "| typeof:",
+            typeof rawUsers[0].status
+          );
+        }
+        console.log("Raw app users from API:", rawUsers);
+
+        const usersWithStatus = rawUsers.map(normalizeUser);
+        setManageAppUsers(usersWithStatus);
       } catch (error) {
         handleErrors(error);
       } finally {
@@ -60,16 +103,16 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     fetchData();
   }, []);
 
- const filteredData = manageAppUsers.filter((user) => {
-  const query = searchQuery.toLowerCase();
+  const filteredData = manageAppUsers.filter((user) => {
+    const query = searchQuery.toLowerCase();
 
-  return (
-    user.firstName?.toLowerCase().includes(query) ||
-    user.lastName?.toLowerCase().includes(query) ||
-    user.emailId?.toLowerCase().includes(query) ||
-    user.mobileNo?.toLowerCase().includes(query)
-  );
-});
+    return (
+      user.firstName?.toLowerCase().includes(query) ||
+      user.lastName?.toLowerCase().includes(query) ||
+      user.emailId?.toLowerCase().includes(query) ||
+      user.mobileNo?.toLowerCase().includes(query)
+    );
+  });
   const currentData = paginateData(filteredData, currentPage, entriesPerPage);
   const totalPages = calculateTotalPages(filteredData.length, entriesPerPage);
 
@@ -92,39 +135,87 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
       }
     }
   };
+
   const handleChangePassword = async () => {
-  if (!newPassword || !confirmPassword) {
-    Swal.fire("Error", "Please fill all fields", "error");
+    if (!newPassword || !confirmPassword) {
+      Swal.fire("Error", "Please fill all fields", "error");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      Swal.fire("Error", "Passwords do not match", "error");
+      return;
+    }
+
+    try {
+      setPasswordLoading(true);
+
+      await ChangePassword({
+        userGuid: selectedUserGuid,
+        newPassword: newPassword,
+      });
+
+      Swal.fire(
+        "Success",
+        "Password updated successfully",
+        "success"
+      );
+
+      setShowPasswordModal(false);
+      setNewPassword("");
+      setConfirmPassword("");
+      setSelectedUserGuid("");
+    } catch (error) {
+      handleErrors(error);
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  // ⚠️ Toggle handler rewritten to:
+  //   1. Guard against a missing userGuid (this silently breaks the API call).
+  //   2. Log the request/response so you can see exactly what's happening.
+  //   3. Only update local state AFTER a confirmed successful response,
+  //      using the functional form of setState so it always operates on
+  //      the latest state (avoids stale-closure bugs).
+ const handleToggleStatus = async (item) => {
+  if (!item.userGuid) {
+    console.error(
+      "handleToggleStatus: missing userGuid on item — check field name from API",
+      item
+    );
+    Swal.fire("Error", "Unable to update status: missing user identifier", "error");
     return;
   }
 
-  if (newPassword !== confirmPassword) {
-    Swal.fire("Error", "Passwords do not match", "error");
-    return;
-  }
+  const newStatus = !item.status;
+  const statusPayload = newStatus ? "Unblock" : "Blocked"; // action verb, not state
+  setStatusLoadingId(item.id);
 
   try {
-    setPasswordLoading(true);
-
-    await ChangePassword({
-      userGuid: selectedUserGuid,
-      newPassword: newPassword,
+    const res = await blockUnblockAppUser({
+      userGuid: item.userGuid,
+      status: statusPayload,
     });
+
+    console.log("blockUnblockAppUser response:", res);
+
+    setManageAppUsers((prev) =>
+      prev.map((user) =>
+        user.id === item.id ? { ...user, status: newStatus } : user
+      )
+    );
 
     Swal.fire(
       "Success",
-      "Password updated successfully",
+      `User ${newStatus ? "unblocked" : "blocked"} successfully`,
       "success"
     );
-
-    setShowPasswordModal(false);
-    setNewPassword("");
-    setConfirmPassword("");
-    setSelectedUserGuid("");
   } catch (error) {
+    console.error("handleToggleStatus failed:", error);
     handleErrors(error);
   } finally {
-    setPasswordLoading(false);
+    setStatusLoadingId(null);
   }
 };
 
@@ -146,17 +237,17 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                     options={[10, 25, 50, 100]}
                   />
                   <div>
-                   <input
-  type="text"
-  placeholder="Search..."
-  className="form-control mb-2"
-  value={searchQuery}
-  autoComplete="new-password"
-  name="search_random_app_user"
-  id="search_random_app_user"
-  spellCheck={false}
-  onChange={(e) => setSearchQuery(e.target.value)}
-/>
+                    <input
+                      type="text"
+                      placeholder="Search..."
+                      className="form-control mb-2"
+                      value={searchQuery}
+                      autoComplete="new-password"
+                      name="search_random_app_user"
+                      id="search_random_app_user"
+                      spellCheck={false}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
                   </div>
                 </div>
 
@@ -173,14 +264,18 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                           "Last Name",
                           "Email Address",
                           "Phone Number",
-                           "Change Password",
+                          "City",
+                          "District",
+                          "State",
+                          "Change Password",
+                          "Status",
                           "Added On",
                           "Action",
                         ]}
                       />
                       <tbody className="manage-property-owner-table-values">
                         {currentData.length === 0 ? (
-                          <TableDataStatusError colspan="9" />
+                          <TableDataStatusError colspan="13" />
                         ) : (
                           currentData.map((item, index) => (
                             <TablesRow
@@ -190,9 +285,9 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                                   (currentPage - 1) * entriesPerPage + index + 1,
                                 profileImage: (
                                   <img
-                                    src={  item.proFileImage
-          ? `https://4.nxtai.dev/${item.proFileImage}`
-          : allImages.defaultprofile}
+                                    src={item.proFileImage
+                                      ? `https://4.nxtai.dev/${item.proFileImage}`
+                                      : allImages.defaultprofile}
                                     alt="Profile"
                                     className="profile-img"
                                   />
@@ -201,28 +296,48 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                                 LastName: item.lastName,
                                 emailId: item.emailId,
                                 MobileNo: item.mobileNo,
+                                City: item.city || "-",
+                                District: item.district || "-",
+                                State: item.state || "-",
                                 changePassword: (
- <button
-  type="button"
-  className="btn btn-sm"
-  style={{
-    background:
-      "linear-gradient(135deg, #f59e0b, #facc15)",
-    border: "none",
-    color: "#000",
-    fontWeight: "600",
-    borderRadius: "8px",
-    padding: "6px 12px",
-    whiteSpace: "nowrap",
-  }}
-  onClick={() => {
-    setSelectedUserGuid(item.userGuid);
-    setShowPasswordModal(true);
-  }}
->
-  Change Password
-</button>
-),
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm"
+                                    style={{
+                                      background:
+                                        "linear-gradient(135deg, #f59e0b, #facc15)",
+                                      border: "none",
+                                      color: "#000",
+                                      fontWeight: "600",
+                                      borderRadius: "8px",
+                                      padding: "6px 12px",
+                                      whiteSpace: "nowrap",
+                                    }}
+                                    onClick={() => {
+                                      setSelectedUserGuid(item.userGuid);
+                                      setShowPasswordModal(true);
+                                    }}
+                                  >
+                                    Change Password
+                                  </button>
+                                ),
+                                status: (
+                                  <div className="form-check form-switch">
+                                    <input
+                                      className="form-check-input"
+                                      type="checkbox"
+                                      role="switch"
+                                      style={{
+                                        width: "2.5em",
+                                        height: "1.3em",
+                                        cursor: "pointer",
+                                      }}
+                                      checked={!!item.status}
+                                      disabled={statusLoadingId === item.id}
+                                      onChange={() => handleToggleStatus(item)}
+                                    />
+                                  </div>
+                                ),
                                 addedOn: new Date(item.createdOn).toLocaleDateString(),
                               }}
                               columns={[
@@ -232,14 +347,17 @@ const [showConfirmPassword, setShowConfirmPassword] = useState(false);
                                 "LastName",
                                 "emailId",
                                 "MobileNo",
+                                "City",
+                                "District",
+                                "State",
                                 "changePassword",
+                                "status",
                                 "addedOn",
                               ]}
-                             hideIcons={false}
-onEdit={() => navigate(`add/${item.id}`)}
-onDelete={() => handleDelete(item.id)}
-
-pageLevelAccessData={pageAccessDetails}
+                              hideIcons={false}
+                              onEdit={() => navigate(`add/${item.id}`)}
+                              onDelete={() => handleDelete(item.id)}
+                              pageLevelAccessData={pageAccessDetails}
                             />
                           ))
                         )}
@@ -263,133 +381,132 @@ pageLevelAccessData={pageAccessDetails}
         ""
       )}
       {showPasswordModal && (
-  <div
-    className="modal fade show d-block"
-    tabIndex="-1"
-    style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-  >
-    <div className="modal-dialog modal-dialog-centered">
-      <div
-        className="modal-content border-0"
-        style={{
-          borderRadius: "20px",
-          overflow: "hidden",
-        }}
-      >
-        {/* Header */}
         <div
-          className="modal-header border-0"
-          style={{
-            background:
-              "linear-gradient(135deg, #f59e0b, #facc15)",
-          }}
+          className="modal fade show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
         >
-          <h5 className="modal-title fw-bold text-dark">
-            Change Password
-          </h5>
+          <div className="modal-dialog modal-dialog-centered">
+            <div
+              className="modal-content border-0"
+              style={{
+                borderRadius: "20px",
+                overflow: "hidden",
+              }}
+            >
+              {/* Header */}
+              <div
+                className="modal-header border-0"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #f59e0b, #facc15)",
+                }}
+              >
+                <h5 className="modal-title fw-bold text-dark">
+                  Change Password
+                </h5>
 
-          <button
-            type="button"
-            className="btn-close"
-            onClick={() => setShowPasswordModal(false)}
-          ></button>
-        </div>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowPasswordModal(false)}
+                ></button>
+              </div>
 
-        {/* Body */}
-        <div className="modal-body p-4">
-          <div className="mb-3">
-            <label className="form-label fw-semibold">
-              New Password
-            </label>
+              {/* Body */}
+              <div className="modal-body p-4">
+                <div className="mb-3">
+                  <label className="form-label fw-semibold">
+                    New Password
+                  </label>
 
-          <div className="position-relative">
-  <input
-    type={showNewPassword ? "text" : "password"}
-    className="form-control pe-5"
-    placeholder="Enter new password"
-    autoComplete="new-password"
-    value={newPassword}
-    onChange={(e) => setNewPassword(e.target.value)}
-  />
+                  <div className="position-relative">
+                    <input
+                      type={showNewPassword ? "text" : "password"}
+                      className="form-control pe-5"
+                      placeholder="Enter new password"
+                      autoComplete="new-password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
 
-  <button
-    type="button"
-    className="btn position-absolute top-50 end-0 translate-middle-y border-0 bg-transparent"
-    onClick={() => setShowNewPassword(!showNewPassword)}
-  >
-    {showNewPassword ? (
-      <Eye size={18} />
-    ) : (
-      <EyeOff size={18} />
-    )}
-  </button>
-</div>
+                    <button
+                      type="button"
+                      className="btn position-absolute top-50 end-0 translate-middle-y border-0 bg-transparent"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                    >
+                      {showNewPassword ? (
+                        <Eye size={18} />
+                      ) : (
+                        <EyeOff size={18} />
+                      )}
+                    </button>
+                  </div>
+                </div>
 
-      </div>
+                <div className="mb-3">
+                  <label className="form-label fw-semibold">
+                    Confirm Password
+                  </label>
+                  <div className="position-relative">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      className="form-control pe-5"
+                      placeholder="Confirm password"
+                      autoComplete="new-password"
+                      value={confirmPassword}
+                      onChange={(e) =>
+                        setConfirmPassword(e.target.value)
+                      }
+                    />
 
-          <div className="mb-3">
-            <label className="form-label fw-semibold">
-              Confirm Password
-            </label>
-<div className="position-relative">
-  <input
-    type={showConfirmPassword ? "text" : "password"}
-    className="form-control pe-5"
-    placeholder="Confirm password"
-    autoComplete="new-password"
-    value={confirmPassword}
-    onChange={(e) => setConfirmPassword(e.target.value)}
-  />
+                    <button
+                      type="button"
+                      className="btn position-absolute top-50 end-0 translate-middle-y border-0 bg-transparent"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                    >
+                      {showConfirmPassword ? (
+                        <Eye size={18} />
+                      ) : (
+                        <EyeOff size={18} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
 
-  <button
-    type="button"
-    className="btn position-absolute top-50 end-0 translate-middle-y border-0 bg-transparent"
-    onClick={() =>
-      setShowConfirmPassword(!showConfirmPassword)
-    }
-  >
-    {showConfirmPassword ? (
-      <Eye size={18} />
-    ) : (
-      <EyeOff size={18} />
-    )}
-  </button>
-</div>
-    
-            
+              {/* Footer */}
+              <div className="modal-footer border-0">
+                <button
+                  type="button"
+                  className="btn btn-light"
+                  onClick={() => setShowPasswordModal(false)}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  className="btn"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #f59e0b, #facc15)",
+                    color: "#000",
+                    fontWeight: "600",
+                    border: "none",
+                  }}
+                  onClick={handleChangePassword}
+                  disabled={passwordLoading}
+                >
+                  {passwordLoading ? "Updating..." : "Update Password"}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* Footer */}
-        <div className="modal-footer border-0">
-          <button
-  type="button"
-  className="btn btn-light"
-  onClick={() => setShowPasswordModal(false)}
->
-  Cancel
-</button>
-
-          <button
-  type="button"
-  className="btn"
-  style={{
-    background:
-      "linear-gradient(135deg, #f59e0b, #facc15)",
-    color: "#000",
-    fontWeight: "600",
-    border: "none",
-  }}
-  onClick={handleChangePassword}
-  disabled={passwordLoading}
->
-  {passwordLoading ? "Updating..." : "Update Password"}
-</button>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+      )}
     </>
   );
 };

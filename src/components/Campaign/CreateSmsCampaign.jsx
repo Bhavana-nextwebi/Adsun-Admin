@@ -104,6 +104,8 @@ const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
 
   const selectedTemplate = templates.find((t) => t.templateId === templateId);
 
+  const formatAreaLabel = (opt) => [opt.state, opt.city, opt.area].filter(Boolean).join(", ");
+
   useEffect(() => {
     const load = async () => {
       setLoadingMeta(true);
@@ -183,6 +185,7 @@ const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
               area,
               state: row.state?.trim() || "",
               city: row.city?.trim() || "",
+              userName: row.userName?.trim() || "",
             });
           }
         });
@@ -401,6 +404,18 @@ const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
       .includes(locationQuery.toLowerCase())
   );
 }, [locationQuery, areaOptions]);
+
+
+const selectLocation = (opt) => {
+  setSelectedArea(opt.area);
+  setLocationQuery(formatAreaLabel(opt));
+  setLocationDropdownOpen(false);
+};
+
+const clearLocation = () => {
+  setSelectedArea("");
+  setLocationQuery("");
+};
 
   const getLocationIdForArea = (area) => {
     if (!area) return 0;
@@ -864,6 +879,58 @@ setLocationDropdownOpen(false);
 .location-item small{
     color:#6c757d;
 }
+    .sms-campaign .location-combo {
+  position: relative;
+}
+.sms-campaign .location-combo .input-group-text {
+  border-color: var(--sms-border);
+}
+.sms-campaign .location-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid var(--sms-border);
+  border-radius: 10px;
+  box-shadow: 0 10px 28px rgba(74, 108, 247, 0.14);
+  max-height: 260px;
+  overflow-y: auto;
+  z-index: 20;
+}
+.sms-campaign .location-option {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--sms-border);
+}
+.sms-campaign .location-option:last-child {
+  border-bottom: none;
+}
+.sms-campaign .location-option:hover,
+.sms-campaign .location-option.active {
+  background: var(--sms-accent-soft);
+}
+.sms-campaign .location-option-main {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.sms-campaign .location-option-sub {
+  font-size: 0.72rem;
+  color: var(--sms-muted);
+}
+.sms-campaign .location-option-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 0.5rem;
+  color: var(--sms-primary-dark);
+  font-weight: 600;
+}
+.sms-campaign .location-empty {
+  padding: 0.6rem 0.75rem;
+  font-size: 0.8rem;
+  color: var(--sms-muted);
+}
       `}</style>
 
       <div className="page-shell">
@@ -965,67 +1032,82 @@ setLocationDropdownOpen(false);
                     ))}
                   </select>
                 </div>
-                <div className="col-md-6">
+               <div className="col-md-6">
   <label className="form-label">Location</label>
-
-
-                <div className="position-relative" ref={locationBoxRef}>
-  <input
-    type="text"
-    className="form-control"
-    placeholder={areasLoading ? "Loading..." : "Search location..."}
-    value={locationQuery}
-    disabled={areasLoading}
-    onFocus={() => setLocationDropdownOpen(true)}
-    onChange={(e) => {
-      setLocationQuery(e.target.value);
-      setLocationDropdownOpen(true);
-    }}
-  />
- 
-
- {locationDropdownOpen && (
-  <div className="location-dropdown">
-
-    <div
-      className="location-item all-location"
-      onClick={() => {
-        setSelectedArea("");
-        setLocationQuery("");
-        setLocationDropdownOpen(false);
-      }}
-    >
-      <strong>All locations</strong>
+  <div className="location-combo" ref={locationBoxRef}>
+    <div className="input-group">
+      <span className="input-group-text bg-white">
+        <i className="ri-map-pin-line" />
+      </span>
+      <input
+        type="text"
+        className="form-control"
+        placeholder={areasLoading ? "Loading areas..." : "Search location..."}
+        value={locationQuery}
+        disabled={areasLoading}
+        onFocus={() => setLocationDropdownOpen(true)}
+        onChange={(e) => {
+          setLocationQuery(e.target.value);
+          setLocationDropdownOpen(true);
+          if (selectedArea) setSelectedArea("");
+        }}
+      />
+      {selectedArea && (
+        <button
+          type="button"
+          className="btn btn-outline-secondary"
+          onClick={clearLocation}
+          title="Clear location"
+        >
+          <i className="ri-close-line" />
+        </button>
+      )}
     </div>
 
-    {filteredLocations.map((loc) => (
-      <div
-        key={loc.area}
-        className="location-item"
-        onClick={() => {
-          setSelectedArea(loc.area);
-          setLocationQuery(loc.area);
-          setLocationDropdownOpen(false);
-        }}
-      >
-        <div className="fw-semibold">{loc.area}</div>
-
-        <small className="text-muted">
-          {loc.city}, {loc.state}
-        </small>
-      </div>
-    ))}
-
-    {!filteredLocations.length && (
-      <div className="location-item text-muted">
-        No locations found
+    {locationDropdownOpen && !areasLoading && (
+      <div className="location-dropdown">
+        <div
+          className={`location-option ${!selectedArea ? "active" : ""}`}
+          onClick={() => {
+            setSelectedArea("");
+            setLocationQuery("");
+            setLocationDropdownOpen(false);
+          }}
+        >
+          <div className="location-option-main">All locations</div>
+        </div>
+        {filteredLocations.length === 0 ? (
+          <div className="location-empty">No matching locations</div>
+        ) : (
+          filteredLocations.map((opt) => (
+            <div
+              key={opt.area}
+              className={`location-option ${selectedArea === opt.area ? "active" : ""}`}
+              onClick={() => selectLocation(opt)}
+            >
+              <div className="location-option-main">{opt.area}</div>
+              {(opt.city || opt.state || opt.userName) && (
+                <div className="location-option-sub">
+                  {[opt.city, opt.state].filter(Boolean).join(", ")}
+                  {opt.userName && (
+                    <span className="location-option-user">
+                      <i className="ri-user-3-line" /> {opt.userName}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          ))
+        )}
       </div>
     )}
-
   </div>
-)}
+  {!areasLoading && areaOptions.length === 0 && (
+    <small className="sms-muted fst-italic d-block mt-1">
+      No areas found for this category.
+    </small>
+  )}
 </div>
-              </div>
             </div>
 
               {(!categoryId || !selectedArea) && (

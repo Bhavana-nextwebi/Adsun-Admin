@@ -11,10 +11,10 @@ import ComponentHeader from '../Common/OtherElements/ComponentHeader';
 import { usePageLevelAccess } from '../../hooks/usePageLevelAccess';
 import { useNavigate, useParams } from 'react-router-dom';
 
-const InputField = ({ label, id, type = "text", value, onChange, error, placeholder }) => (
+const InputField = ({ label, id, type = "text", value, onChange, error, placeholder, required = true }) => (
   <div className="mb-3">
     <label htmlFor={id} className="form-label">
-      {label} <span className='required-field'>*</span>
+      {label} {required && <span className='required-field'>*</span>}
     </label>
     <input
       type={type}
@@ -60,6 +60,9 @@ const AddAppUser = () => {
     Password: '',
     Confirm_Password: '',
     profileImage: null,
+    city: '',
+    state: '',
+    district: '',
   });
 
   const [formErrors, setFormErrors] = useState({});
@@ -94,9 +97,11 @@ const AddAppUser = () => {
             LastName: userData.lastName || '',
             EmailId: userData.emailId || '',
             MobileNo: userData.mobileNo || '',
-            
+            city: userData.city || '',
+            state: userData.state || '',
+            district: userData.district || '',
           }));
-          if (userData.proFileImage) 
+          if (userData.proFileImage)
             setImageUrl(`https://4.nxtai.dev/${userData.proFileImage.replace(/^\/+/, "")}`);
         }
       } catch (error) {
@@ -112,24 +117,24 @@ const AddAppUser = () => {
   };
 
   const handlePhoneChange = (value) => {
-  setFormValues(prev => ({
-    ...prev,
-    MobileNo: value ?? '' 
-  }));
-};
-
- const handleFileChange = (e) => {
-  const file = e.target.files[0];
-
-  if (file) {
-    setImageUrl(URL.createObjectURL(file));
-
     setFormValues(prev => ({
       ...prev,
-      profileImage: file,
+      MobileNo: value ?? ''
     }));
-  }
-};
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+
+    if (file) {
+      setImageUrl(URL.createObjectURL(file));
+
+      setFormValues(prev => ({
+        ...prev,
+        profileImage: file,
+      }));
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -156,6 +161,9 @@ const AddAppUser = () => {
           EmailId: formValues.EmailId,
           MobileNo: formValues.MobileNo,
           proFileImage: formValues.profileImage,
+          city: formValues.city,
+          state: formValues.state,
+          district: formValues.district
         });
         toast.success("User updated successfully!");
       } else {
@@ -168,7 +176,10 @@ const AddAppUser = () => {
           MobileNo: '',
           Password: '',
           Confirm_Password: '',
-          proFileImage: null,
+          profileImage: null,
+          city: '',
+          state: '',
+          district: ''
         });
         setImageUrl(allImages.defaultprofile);
       }
@@ -247,6 +258,43 @@ const AddAppUser = () => {
                         <div style={{ color: '#dc3545' }}>{formErrors.MobileNo}</div>
                       )}
                     </div>
+                  </div>
+
+                  {/* City / State / District */}
+                  <div className="col-lg-4 col-md-6 col-sm-12">
+                    <InputField
+                      label="State"
+                      id="state"
+                      value={formValues.state}
+                      onChange={handleInputChange}
+                      error={formErrors.state}
+                      placeholder="Enter State"
+                      required={false}
+                    />
+                  </div>
+
+                  <div className="col-lg-4 col-md-6 col-sm-12">
+                    <InputField
+                      label="District"
+                      id="district"
+                      value={formValues.district}
+                      onChange={handleInputChange}
+                      error={formErrors.district}
+                      placeholder="Enter District"
+                      required={false}
+                    />
+                  </div>
+
+                  <div className="col-lg-4 col-md-6 col-sm-12">
+                    <InputField
+                      label="City"
+                      id="city"
+                      value={formValues.city}
+                      onChange={handleInputChange}
+                      error={formErrors.city}
+                      placeholder="Enter City"
+                      required={false}
+                    />
                   </div>
 
                   {!isEditMode && (
