@@ -156,6 +156,12 @@ const isHighlighted = (item) => {
   });
 };
 
+  // Builds "area, city, state" skipping any missing pieces
+  const getLocationLine = (item) => {
+    const parts = [item.area, item.city, item.state].filter(Boolean);
+    return parts.length ? parts.join(', ') : '-';
+  };
+
   return (
     <>
       {pageAccessDetails.viewAccess ? (
@@ -200,22 +206,17 @@ const isHighlighted = (item) => {
                       <TableHeader
                         columns={[
                           '#',
-                          'UserName',
+                          'MobileAppUser',
                           'Category',
-                          'Area',
-                          'City',
-                          'State',
-                          'Coordinates',
-                          'Radius(km)',
-                           'Action',
-                            'Added On',
+                          'Location',
+                          'Action',
+                          'Added On',
                           'Status',
-                         
                         ]}
                       />
                       <tbody>
                         {currentData.length === 0 ? (
-                          <TableDataStatusError colspan="9" />
+                          <TableDataStatusError colspan="7" />
                         ) : (
                           currentData.map((item, index) => (
                             <tr
@@ -236,22 +237,47 @@ const isHighlighted = (item) => {
                               </td>
                                 <td>{item.userName || '-'}</td>
                               <td>{item.category || '-'}</td>
-                               <td>{item.area || '-'}</td>
-                              <td>{item.city || '-'}</td>
-                              <td>{item.state || '-'}</td>
-                              <td>{item.coOrdinates || '-'}</td>
-                              {/* <td style={{ minWidth: '160px' }}>
-                                <small className="text-muted">{item.coOrdinates || '-'}</small>
-                              </td> */}
-                              
+                              <td style={{ minWidth: '250px' }}>
+                                <div className="d-flex align-items-center mb-1">
+                                  <span
+                                    className="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger-subtle text-danger me-2"
+                                    style={{ width: '22px', height: '22px', flex: '0 0 auto' }}
+                                  >
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+                                      <circle cx="12" cy="10" r="3"></circle>
+                                    </svg>
+                                  </span>
+                                  <span className="fw-medium">{getLocationLine(item)}</span>
+                                </div>
+                                <div className="d-flex align-items-center mb-1">
+                                  <span
+                                    className="d-inline-flex align-items-center justify-content-center rounded-circle bg-info-subtle text-info me-2"
+                                    style={{ width: '22px', height: '22px', flex: '0 0 auto' }}
+                                  >
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                      <circle cx="12" cy="12" r="8"></circle>
+                                      <path d="M12 2v4M12 18v4M2 12h4M18 12h4"></path>
+                                    </svg>
+                                  </span>
+                                  <span className="small">{item.coOrdinates || '-'}</span>
+                                </div>
+                                {getRadiusFromCoordinates(item.coOrdinates) && (
+                                  <div className="d-flex align-items-center">
+                                    <span
+                                      className="d-inline-flex align-items-center justify-content-center rounded-circle bg-warning-subtle text-warning me-2"
+                                      style={{ width: '22px', height: '22px', flex: '0 0 auto' }}
+                                    >
+                                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <circle cx="12" cy="12" r="9"></circle>
+                                        <circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"></circle>
+                                      </svg>
+                                    </span>
+                                    <span className="small">{getRadiusFromCoordinates(item.coOrdinates)} km radius</span>
+                                  </div>
+                                )}
+                              </td>
                               <td>
- 
-    {getRadiusFromCoordinates(item.coOrdinates)
-      ? `${getRadiusFromCoordinates(item.coOrdinates)} km`
-      : '-'}
-  
-</td>
-<td>
                                 <button
                                   className="btn btn-sm btn-primary"
                                   title="View Search Results"

@@ -24,6 +24,41 @@ import { TableDataStatusError } from '../Common/OtherElements/TableDataStatusErr
 import { handleErrors } from '../../utils/errorHandler';
 import { usePageLevelAccess } from '../../hooks/usePageLevelAccess';
 
+/* ---------------------------------------------------------------------
+   Shared design tokens — keep identical in SearchResults.jsx
+--------------------------------------------------------------------- */
+const thStyle = {
+  fontSize: '12px',
+  fontWeight: '700',
+  color: '#6B7280',
+  textTransform: 'uppercase',
+  letterSpacing: '0.03em',
+  verticalAlign: 'middle',
+  padding: '12px 14px',
+};
+
+const tdStyle = {
+  fontSize: '13px',
+  fontWeight: '400',
+  color: '#1F2937',
+  lineHeight: '1.5',
+  verticalAlign: 'middle',
+  padding: '12px 14px',
+};
+
+const iconStyle = {
+  fontSize: '14px',
+  width: '16px',
+  textAlign: 'center',
+  flex: '0 0 auto',
+};
+
+const pillBase = {
+  fontWeight: '600',
+  fontSize: '11px',
+  padding: '4px 10px',
+};
+
 export const ViewGoogleSearchResult = () => {
 
   const [data, setData] = useState([]);
@@ -73,55 +108,55 @@ export const ViewGoogleSearchResult = () => {
   }, []);
 
   // FETCH DATA
- const fetchData = async () => {
+  const fetchData = async () => {
 
-  try {
+    try {
 
-    setLoading(true);
+      setLoading(true);
 
-    const formatDate = (date) => {
+      const formatDate = (date) => {
 
-      if (!date) return null;
+        if (!date) return null;
 
-      const d = new Date(date);
+        const d = new Date(date);
 
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
 
-      return `${year}-${month}-${day}`;
-    };
+        return `${year}-${month}-${day}`;
+      };
 
-    const formattedFromDate = formatDate(fromDate);
-    const formattedToDate = formatDate(toDate);
+      const formattedFromDate = formatDate(fromDate);
+      const formattedToDate = formatDate(toDate);
 
-    const response = await getAllSearchResults(
-      formattedFromDate,
-      formattedToDate
-    );
+      const response = await getAllSearchResults(
+        formattedFromDate,
+        formattedToDate
+      );
 
-    if (response?.isSuccess) {
+      if (response?.isSuccess) {
 
-      setData(response.result || []);
+        setData(response.result || []);
 
-    } else {
+      } else {
+
+        setData([]);
+
+      }
+
+    } catch (error) {
 
       setData([]);
 
+      handleErrors(error);
+
+    } finally {
+
+      setLoading(false);
+
     }
-
-  } catch (error) {
-
-    setData([]);
-
-    handleErrors(error);
-
-  } finally {
-
-    setLoading(false);
-
-  }
-};
+  };
 
   // EXPORT EXCEL
   const exportToExcel = () => {
@@ -220,77 +255,71 @@ export const ViewGoogleSearchResult = () => {
 
   };
 
-  const thStyle = {
-    fontSize: '14px',
-    fontWeight: '700',
-    color: '#1F2937',
-    verticalAlign: 'middle'
-  };
-
-  const tdStyle = {
-    fontSize: '12px',
-    fontWeight: '300',
-    color: '#310800',
-    lineHeight: '1.5',
-    verticalAlign: 'middle'
-  };
-
   return (
     <>
       {pageAccessDetails.viewAccess ? (
 
         <div className="row">
-
           <div className="col-12">
+            <div className="card border-0 shadow-sm rounded-3">
 
-            {/* FILTER SECTION */}
-            <div className="card mb-4">
+              {/* HEADER */}
+              <div className="card-header bg-white border-bottom py-3 px-4 rounded-top-3">
+                <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                  <div>
+                    <h5 className="mb-1 fw-bold text-dark">
+                      Google Search Results
+                    </h5>
+                    <small className="text-muted">
+                      Total Records : <strong>{filteredData.length}</strong>
+                    </small>
+                  </div>
 
-              <div className="card-body">
+                  <button
+                    className="btn btn-success d-flex align-items-center gap-2"
+                    onClick={exportToExcel}
+                    disabled={filteredData.length === 0}
+                  >
+                    <i className="ri-file-excel-2-line" style={iconStyle}></i>
+                    Export Excel
+                  </button>
+                </div>
+              </div>
 
+              {/* FILTER ROW */}
+              <div className="px-4 pt-3 pb-2">
                 <div className="row g-3 align-items-end">
 
                   {/* ENTRIES */}
                   <div className="col-lg-2 col-md-3">
-
                     <EntriesDropdown
                       entriesPerPage={entriesPerPage}
                       onEntriesChange={handleEntriesChange}
                       options={[10, 25, 50, 100]}
                     />
-
                   </div>
 
                   {/* SEARCH */}
                   <div className="col-lg-4 col-md-9">
-
-                    <div className="input-group">
-
-                      <span className="input-group-text bg-white">
-                        <i className="ri-search-line"></i>
+                    <div className="input-group" style={{ height: '42px' }}>
+                      <span className="input-group-text bg-white border-end-0">
+                        <i className="ri-search-line" style={iconStyle}></i>
                       </span>
-
                       <input
                         type="text"
-                        className="form-control"
+                        className="form-control border-start-0"
                         placeholder="Search business, address, phone..."
                         value={searchQuery}
                         onChange={(e) => {
                           setSearchQuery(e.target.value);
                           setCurrentPage(1);
                         }}
-                        style={{
-                          height: '45px'
-                        }}
                       />
-
                     </div>
-
                   </div>
 
                   {/* FROM DATE */}
                   <div className="col-lg-2 col-md-6">
-
                     <Flatpickr
                       value={fromDate}
                       onChange={(dates) => {
@@ -302,16 +331,12 @@ export const ViewGoogleSearchResult = () => {
                       }}
                       className="form-control"
                       placeholder="From date"
-                      style={{
-                        height: '45px'
-                      }}
+                      style={{ height: '42px' }}
                     />
-
                   </div>
 
                   {/* TO DATE */}
                   <div className="col-lg-2 col-md-6">
-
                     <Flatpickr
                       value={toDate}
                       onChange={(dates) => {
@@ -323,38 +348,28 @@ export const ViewGoogleSearchResult = () => {
                       }}
                       className="form-control"
                       placeholder="To date"
-                      style={{
-                        height: '45px'
-                      }}
+                      style={{ height: '42px' }}
                     />
-
                   </div>
 
                   {/* BUTTONS */}
                   <div className="col-lg-2 col-md-12">
-
                     <div className="d-flex gap-2">
-
                       <button
-                        className="btn btn-primary w-100"
-                        style={{
-                          height: '45px'
-                        }}
+                        className="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-1"
+                        style={{ height: '42px' }}
                         onClick={() => {
                           setCurrentPage(1);
                           fetchData();
                         }}
                       >
-                        <i className="ri-search-line me-1"></i>
+                        <i className="ri-search-line" style={iconStyle}></i>
                         Search
                       </button>
 
                       <button
-                        className="btn btn-light border"
-                        style={{
-                          height: '45px',
-                          width: '45px'
-                        }}
+                        className="btn btn-outline-secondary d-flex align-items-center justify-content-center"
+                        style={{ height: '42px', width: '42px', flex: '0 0 auto' }}
                         onClick={() => {
 
                           setFromDate(null);
@@ -367,557 +382,247 @@ export const ViewGoogleSearchResult = () => {
                           }, 0);
 
                         }}
+                        title="Reset filters"
                       >
-                        <i className="ri-refresh-line"></i>
+                        <i className="ri-refresh-line" style={iconStyle}></i>
                       </button>
-
                     </div>
-
                   </div>
 
                 </div>
-
               </div>
 
-            </div>
-
-            {/* TABLE */}
-            <div className="card border-0 shadow-sm">
-
-              {/* HEADER */}
-              <div className="card-header bg-white border-bottom py-3 px-3">
-
-                <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
-
-                  <div>
-
-                    <h5 className="mb-1 fw-bold text-dark">
-                      Google Search Results
-                    </h5>
-
-                    <small className="text-muted">
-                      Total Records : {filteredData.length}
-                    </small>
-
-                  </div>
-
-                  <button
-                    className="btn btn-success d-flex align-items-center gap-2"
-                    onClick={exportToExcel}
-                    disabled={filteredData.length === 0}
-                  >
-                    <i className="ri-file-excel-2-line"></i>
-
-                    Export Excel
-                  </button>
-
-                </div>
-
-              </div>
-
-              {/* BODY */}
+              {/* TABLE */}
               <div className="card-body p-0">
-
                 {loading ? (
-
-                  <Loading />
-
+                  <div className="p-4">
+                    <Loading />
+                  </div>
                 ) : (
-
-                  <div className="table-responsive">
-
+                  <div className="table-responsive mt-2">
                     <table
                       className="table table-hover table-bordered align-middle mb-0"
+                      style={{ tableLayout: 'fixed', width: '100%', minWidth: '1850px' }}
                     >
-
-                      <thead
-                        className="table-light"
-                        style={{
-                          whiteSpace: 'nowrap'
-                        }}
-                      >
-
+                      <thead style={{ background: '#F9FAFB', borderTop: '1px solid #E5E7EB', borderBottom: '1px solid #E5E7EB' }}>
                         <tr>
-
-                          <th className="text-center" width="60" style={thStyle}>#</th>
-
-                          <th style={thStyle}>UserName</th>
-                          <th style={thStyle}>Search Name</th>
-
-                          <th width="150" style={thStyle}>Category</th>
-
-                          <th width="350" style={thStyle}>Address</th>
-
-                          <th width="250" style={thStyle}>Mobile No</th>
-
-                          <th width="240" style={thStyle}>Email Address</th>
-
-                          <th width="120" style={thStyle}>Price</th>
-
+                          <th className="text-center" width="50" style={thStyle}>#</th>
+                          <th width="140" style={thStyle}>App User</th>
+                          <th width="200" style={thStyle}>Search Name</th>
+                          <th width="130" style={thStyle}>Category</th>
+                          <th width="300" style={thStyle}>Address</th>
+                          <th width="220" style={thStyle}>Contact</th>
+                          <th width="110" style={thStyle}>Price</th>
                           <th width="140" style={thStyle}>Rating</th>
-
-                          <th width="120" style={thStyle}>Reviews</th>
-
-                          <th width="180" style={thStyle}>Working Hours</th>
-
-                          <th width="180" style={thStyle}>Coordinates</th>
-
-                          <th width="180" style={thStyle}>Added On</th>
-
+                          <th width="170" style={thStyle}>Working Hours</th>
+                          <th width="150" style={thStyle}>Added On</th>
                         </tr>
-
                       </thead>
 
-                     <tbody>
-
-  {currentData.length === 0 ? (
-
-    <TableDataStatusError colspan="12" />
-
-  ) : (
-
-    currentData.map((item, index) => (
-
-      <tr
-        key={item.id}
-        style={{
-          transition: '0.2s ease'
-        }}
-      >
-
-        {/* SL NO */}
-        <td
-          className="text-center"
-          style={tdStyle}
-        >
-          {(currentPage - 1) * entriesPerPage + index + 1}
-        </td>
-  <td style={tdStyle}>
-
-          <div
-            style={{
-              fontWeight: '600',
-              color: '#111827',
-              fontSize: '12px'
-            }}
-          >
-            {item.userName || 'UserName name unavailable'}
-          </div>
-
-        </td>
-        {/* BUSINESS NAME */}
-        <td style={tdStyle}>
-
-          <div
-            style={{
-              fontWeight: '600',
-              color: '#111827',
-              fontSize: '12px'
-            }}
-          >
-            {item.title || 'Business name unavailable'}
-          </div>
-
-        </td>
-
-        {/* CATEGORY */}
-        <td style={tdStyle}>
-
-          {item.type ? (
-
-            <span
-              className="badge rounded-pill"
-              style={{
-                background: '#F3F4F6',
-                color: '#374151',
-                fontWeight: '500',
-                fontSize: '11px',
-                padding: '6px 10px'
-              }}
-            >
-              {item.type}
-            </span>
-
-          ) : (
-
-            <span className="text-muted">
-              Not Specified
-            </span>
-
-          )}
-
-        </td>
-
-        {/* ADDRESS */}
-        <td
-          style={{
-            ...tdStyle,
-            whiteSpace: 'normal',
-            minWidth: '260px'
-          }}
-        >
-
-          <div
-            className="d-flex align-items-start gap-2"
-          >
-
-            <i
-              className="ri-map-pin-2-fill mt-1"
-              style={{
-                color: '#DC2626',
-                fontSize: '14px'
-              }}
-            ></i>
-
-            <span>
-              {item.address || 'Address unavailable'}
-            </span>
-
-          </div>
-
-        </td>
-
-        {/* MOBILE NUMBER */}
-        <td
-          style={{
-            ...tdStyle,
-            whiteSpace: 'nowrap',
-            minWidth: '180px'
-          }}
-        >
-
-          {item.phone ? (
-
-            <div
-              className="d-flex align-items-center gap-2"
-            >
-
-              <i
-                className="ri-phone-fill"
-                style={{
-                  color: '#16A34A',
-                  fontSize: '14px'
-                }}
-              ></i>
-
-              <span
-                style={{
-                  fontWeight: '500'
-                }}
-              >
-                {item.phone}
-              </span>
-
-            </div>
-
-          ) : (
-
-            <span className="text-muted">
-              No mobile number
-            </span>
-
-          )}
-
-        </td>
-
-        {/* EMAIL */}
-        <td
-          style={{
-            ...tdStyle,
-            minWidth: '220px'
-          }}
-        >
-
-          {item.email ? (
-
-            <div
-              className="d-flex align-items-center gap-2"
-            >
-
-              <i
-                className="ri-mail-fill"
-                style={{
-                  color: '#2563EB',
-                  fontSize: '14px'
-                }}
-              ></i>
-
-              <span>
-                {item.email}
-              </span>
-
-            </div>
-
-          ) : (
-
-            <span className="text-muted">
-              Email unavailable
-            </span>
-
-          )}
-
-        </td>
-
-        {/* PRICE */}
-        <td style={tdStyle}>
-
-          {item.priceDesc ? (
-
-            <span
-              className="badge rounded-pill"
-              style={{
-                background: '#FEF3C7',
-                color: '#92400E',
-                fontWeight: '600',
-                fontSize: '11px',
-                padding: '6px 10px'
-              }}
-            >
-              {item.priceDesc}
-            </span>
-
-          ) : (
-
-            <span className="text-muted">
-              Not Mentioned
-            </span>
-
-          )}
-
-        </td>
-
-        {/* RATING */}
-        <td style={tdStyle}>
-
-          {item.rating ? (
-
-            <div
-              className="d-inline-flex align-items-center gap-1 px-2 py-1 rounded-pill"
-              style={{
-                background: '#ECFDF5',
-                color: '#065F46',
-                fontWeight: '600',
-                fontSize: '11px'
-              }}
-            >
-
-              <i className="ri-star-fill"></i>
-
-              {item.rating}
-
-            </div>
-
-          ) : (
-
-            <span
-              className="badge bg-light text-muted border"
-              style={{
-                fontSize: '11px',
-                fontWeight: '500'
-              }}
-            >
-              No Ratings
-            </span>
-
-          )}
-
-        </td>
-
-        {/* REVIEWS */}
-        <td style={tdStyle}>
-
-          {item.review ? (
-
-            <div
-              className="d-inline-flex align-items-center gap-1 px-2 py-1 rounded-pill"
-              style={{
-                background: '#EFF6FF',
-                color: '#1D4ED8',
-                fontWeight: '600',
-                fontSize: '11px'
-              }}
-            >
-
-              <i className="ri-chat-3-fill"></i>
-
-              {item.review} Reviews
-
-            </div>
-
-          ) : (
-
-            <span
-              className="badge bg-light text-muted border"
-              style={{
-                fontSize: '11px',
-                fontWeight: '500'
-              }}
-            >
-              No Reviews
-            </span>
-
-          )}
-
-        </td>
-
-        {/* WORKING HOURS */}
-        <td
-          style={{
-            ...tdStyle,
-            minWidth: '180px',
-            whiteSpace: 'normal'
-          }}
-        >
-
-          {item.hours ? (
-
-            <div
-              className="d-flex align-items-start gap-2"
-            >
-
-              <i
-                className="ri-time-fill mt-1"
-                style={{
-                  color: '#7C3AED',
-                  fontSize: '14px'
-                }}
-              ></i>
-
-              <span>
-                {item.hours}
-              </span>
-
-            </div>
-
-          ) : (
-
-            <span className="text-muted">
-              Hours unavailable
-            </span>
-
-          )}
-
-        </td>
-
-        {/* COORDINATES */}
-        <td
-          style={{
-            ...tdStyle,
-            minWidth: '200px'
-          }}
-        >
-
-          {item.latitude && item.longitude ? (
-
-            <div
-              className="d-flex flex-column"
-              style={{
-                fontSize: '11px'
-              }}
-            >
-
-              <span>
-                <strong>Lat:</strong> {item.latitude}
-              </span>
-
-              <span>
-                <strong>Lng:</strong> {item.longitude}
-              </span>
-
-            </div>
-
-          ) : (
-
-            <span className="text-muted">
-              Coordinates unavailable
-            </span>
-
-          )}
-
-        </td>
-
-        {/* ADDED ON */}
-        <td
-          style={{
-            ...tdStyle,
-            minWidth: '180px'
-          }}
-        >
-
-          {item.addedOn ? (
-
-            <div
-              className="d-flex align-items-start gap-2"
-            >
-
-              <i
-                className="ri-calendar-2-fill mt-1"
-                style={{
-                  color: '#EA580C',
-                  fontSize: '14px'
-                }}
-              ></i>
-
-              <div>
-
-                <div
-                  style={{
-                    fontWeight: '500'
-                  }}
-                >
-                  {new Date(item.addedOn).toLocaleDateString()}
-                </div>
-
-                <small className="text-muted">
-                  {new Date(item.addedOn).toLocaleTimeString()}
-                </small>
-
-              </div>
-
-            </div>
-
-          ) : (
-
-            <span className="text-muted">
-              Date unavailable
-            </span>
-
-          )}
-
-        </td>
-
-      </tr>
-
-    ))
-
-  )}
-
-</tbody>
+                      <tbody>
+
+                        {currentData.length === 0 ? (
+
+                          <TableDataStatusError colspan="10" />
+
+                        ) : (
+
+                          currentData.map((item, index) => (
+
+                            <tr key={item.id}>
+
+                              {/* SL NO */}
+                              <td className="text-center text-muted" style={tdStyle}>
+                                {(currentPage - 1) * entriesPerPage + index + 1}
+                              </td>
+
+                              {/* APP USER */}
+                              <td style={tdStyle}>
+                                <div style={{ fontWeight: '600', color: '#111827', fontSize: '13px' }}>
+                                  {item.userName || 'UserName name unavailable'}
+                                </div>
+                              </td>
+
+                              {/* BUSINESS NAME */}
+                              <td style={tdStyle}>
+                                <div style={{ fontWeight: '600', color: '#111827', fontSize: '13px' }}>
+                                  {item.title || 'Business name unavailable'}
+                                </div>
+                              </td>
+
+                              {/* CATEGORY */}
+                              <td style={tdStyle}>
+                                {item.type ? (
+                                  <span
+                                    className="badge rounded-pill"
+                                    style={{ ...pillBase, background: '#F3F4F6', color: '#374151' }}
+                                  >
+                                    {item.type}
+                                  </span>
+                                ) : (
+                                  <span className="text-muted small">Not Specified</span>
+                                )}
+                              </td>
+
+                              {/* ADDRESS */}
+                              <td style={{ ...tdStyle, whiteSpace: 'normal' }}>
+                                <div className="d-flex align-items-start gap-2 mb-1">
+                                  <i className="ri-map-pin-2-fill mt-1" style={{ ...iconStyle, color: '#DC2626' }}></i>
+                                  <span
+                                    style={{
+                                      display: '-webkit-box',
+                                      WebkitLineClamp: 2,
+                                      WebkitBoxOrient: 'vertical',
+                                      overflow: 'hidden',
+                                    }}
+                                    title={item.address}
+                                  >
+                                    {item.address || 'Address unavailable'}
+                                  </span>
+                                </div>
+
+                                {item.latitude && item.longitude ? (
+                                  <div className="d-flex align-items-center gap-2" style={{ paddingLeft: '22px' }}>
+                                    <i className="ri-crosshair-2-line" style={{ ...iconStyle, color: '#0284C7' }}></i>
+                                    <span style={{ fontSize: '11px', color: '#0284C7', fontWeight: '500' }}>
+                                      {item.latitude}, {item.longitude}
+                                    </span>
+                                  </div>
+                                ) : null}
+                              </td>
+
+                              {/* CONTACT */}
+                              <td style={{ ...tdStyle, whiteSpace: 'nowrap' }}>
+                                <div className="d-flex align-items-center gap-2 mb-1">
+                                  <i className="ri-phone-fill" style={{ ...iconStyle, color: item.phone ? '#16A34A' : '#9CA3AF' }}></i>
+                                  {item.phone ? (
+                                    <span style={{ fontWeight: '500' }}>{item.phone}</span>
+                                  ) : (
+                                    <span className="text-muted">No mobile number</span>
+                                  )}
+                                </div>
+
+                                <div className="d-flex align-items-center gap-2">
+                                  <i className="ri-mail-fill" style={{ ...iconStyle, color: item.email ? '#2563EB' : '#9CA3AF' }}></i>
+                                  {item.email ? (
+                                    <span
+                                      className="text-truncate d-inline-block"
+                                      style={{ maxWidth: '160px' }}
+                                      title={item.email}
+                                    >
+                                      {item.email}
+                                    </span>
+                                  ) : (
+                                    <span className="text-muted">Email unavailable</span>
+                                  )}
+                                </div>
+                              </td>
+
+                              {/* PRICE */}
+                              <td style={tdStyle}>
+                                {item.priceDesc ? (
+                                  <span
+                                    className="badge rounded-pill"
+                                    style={{ ...pillBase, background: '#FEF3C7', color: '#92400E' }}
+                                  >
+                                    {item.priceDesc}
+                                  </span>
+                                ) : (
+                                  <span className="text-muted small">Not Mentioned</span>
+                                )}
+                              </td>
+
+                              {/* RATING */}
+                              <td style={tdStyle}>
+                                <div className="d-flex flex-column" style={{ gap: '4px' }}>
+                                  {item.rating ? (
+                                    <span
+                                      className="d-inline-flex align-items-center gap-1 px-2 py-1 rounded-pill"
+                                      style={{ background: '#ECFDF5', color: '#065F46', width: 'fit-content', ...pillBase }}
+                                    >
+                                      <i className="ri-star-fill" style={{ fontSize: '11px' }}></i>
+                                      {item.rating}
+                                    </span>
+                                  ) : (
+                                    <span className="badge bg-light text-muted border" style={{ width: 'fit-content', ...pillBase }}>
+                                      No Ratings
+                                    </span>
+                                  )}
+
+                                  {item.review ? (
+                                    <span
+                                      className="d-inline-flex align-items-center gap-1 px-2 py-1 rounded-pill"
+                                      style={{ background: '#EFF6FF', color: '#1D4ED8', width: 'fit-content', ...pillBase }}
+                                    >
+                                      <i className="ri-chat-3-fill" style={{ fontSize: '11px' }}></i>
+                                      {item.review} Reviews
+                                    </span>
+                                  ) : (
+                                    <span className="badge bg-light text-muted border" style={{ width: 'fit-content', ...pillBase }}>
+                                      No Reviews
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+
+                              {/* WORKING HOURS */}
+                              <td style={{ ...tdStyle, whiteSpace: 'normal' }}>
+                                {item.hours ? (
+                                  <div className="d-flex align-items-center gap-2">
+                                    <i className="ri-time-fill" style={{ ...iconStyle, color: '#7C3AED' }}></i>
+                                    <span>{item.hours}</span>
+                                  </div>
+                                ) : (
+                                  <span className="text-muted">Hours unavailable</span>
+                                )}
+                              </td>
+
+                              {/* ADDED ON */}
+                              <td style={tdStyle}>
+                                {item.addedOn ? (
+                                  <div className="d-flex align-items-center gap-2">
+                                    <i className="ri-calendar-2-fill" style={{ ...iconStyle, color: '#EA580C' }}></i>
+                                    <div>
+                                      <div style={{ fontWeight: '500' }}>
+                                        {new Date(item.addedOn).toLocaleDateString()}
+                                      </div>
+                                      <small className="text-muted">
+                                        {new Date(item.addedOn).toLocaleTimeString()}
+                                      </small>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <span className="text-muted">Date unavailable</span>
+                                )}
+                              </td>
+
+                            </tr>
+
+                          ))
+
+                        )}
+
+                      </tbody>
 
                     </table>
 
                   </div>
 
                 )}
+              </div>
 
+              <div className="px-4 py-3 border-top">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalEntries={filteredData.length}
+                  entriesPerPage={entriesPerPage}
+                  onPageChange={setCurrentPage}
+                />
               </div>
 
             </div>
-
-            {/* PAGINATION */}
-            <div className="mt-3">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalEntries={filteredData.length}
-                entriesPerPage={entriesPerPage}
-                onPageChange={setCurrentPage}
-              />
-
-            </div>
-
           </div>
-
         </div>
 
       ) : null}

@@ -76,6 +76,12 @@ export const GetAllLocations = () => {
     return { lat, lng };
   };
 
+  // Builds "area, city, state, country" skipping any missing pieces
+  const getLocationLine = (item) => {
+    const parts = [item.area, item.city, item.state, item.country].filter(Boolean);
+    return parts.length ? parts.join(', ') : '-';
+  };
+
   return (
     <>
       {pageAccessDetails.viewAccess ? (
@@ -116,12 +122,8 @@ export const GetAllLocations = () => {
                       <TableHeader
   columns={[
     "#",
-    "User Name",
-    "City",
-    "State",
-    "Country",
-    "Area",
-    "Coordinates",
+    "MobileAppUser",
+    "Location",
     "Added On",
     "Action",
     "Status",
@@ -130,7 +132,7 @@ export const GetAllLocations = () => {
 />
                        <tbody>
                         {currentData.length === 0 ? (
-                          <TableDataStatusError colspan="9" />
+                          <TableDataStatusError colspan="6" />
                         ) : (
                           currentData.map((item, index) => {
                             const { lat, lng } = parseCoords(item.jioCoOrdinate);
@@ -142,14 +144,32 @@ export const GetAllLocations = () => {
                                 </td>
 
                                 <td>{item.userName}</td>
-                                <td>{item.city}</td>
-                                <td>{item.state}</td>
-                                <td>{item.country}</td>
-                                <td>{item.area}</td>
 
-                                <td style={{ minWidth: '160px' }}>
-                                  <div>Lat: {lat}</div>
-                                  <div>Lng: {lng}</div>
+                                <td style={{ minWidth: '250px' }}>
+                                  <div className="d-flex align-items-center mb-1">
+                                    <span
+                                      className="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger-subtle text-danger me-2"
+                                      style={{ width: '22px', height: '22px', flex: '0 0 auto' }}
+                                    >
+                                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+                                        <circle cx="12" cy="10" r="3"></circle>
+                                      </svg>
+                                    </span>
+                                    <span className="fw-medium">{getLocationLine(item)}</span>
+                                  </div>
+                                  <div className="d-flex align-items-center">
+                                    <span
+                                      className="d-inline-flex align-items-center justify-content-center rounded-circle bg-info-subtle text-info me-2"
+                                      style={{ width: '22px', height: '22px', flex: '0 0 auto' }}
+                                    >
+                                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                        <circle cx="12" cy="12" r="8"></circle>
+                                        <path d="M12 2v4M12 18v4M2 12h4M18 12h4"></path>
+                                      </svg>
+                                    </span>
+                                    <span className="small">Lat: {lat}, Lng: {lng}</span>
+                                  </div>
                                 </td>
 
                                 <td>

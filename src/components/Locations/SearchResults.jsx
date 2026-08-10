@@ -17,8 +17,6 @@ import {
   calculateTotalPages,
 } from '../../assets/js/script';
 
-import TableHeader from '../Common/TableComponent/TableHeader';
-
 import EntriesDropdown from '../Common/TableComponent/EntriesDropdown';
 
 import { Pagination } from '../Common/TableComponent/Pagination';
@@ -32,6 +30,41 @@ import { handleErrors } from '../../utils/errorHandler';
 import { usePageLevelAccess } from '../../hooks/usePageLevelAccess';
 
 import { getSearchResultsBySearchId } from '../../services/searchLocationsService';
+
+/* ---------------------------------------------------------------------
+   Shared design tokens — keep identical in ViewGoogleSearchResult.jsx
+--------------------------------------------------------------------- */
+const thStyle = {
+  fontSize: '12px',
+  fontWeight: '700',
+  color: '#6B7280',
+  textTransform: 'uppercase',
+  letterSpacing: '0.03em',
+  verticalAlign: 'middle',
+  padding: '12px 14px',
+};
+
+const tdStyle = {
+  fontSize: '13px',
+  fontWeight: '400',
+  color: '#1F2937',
+  lineHeight: '1.5',
+  verticalAlign: 'middle',
+  padding: '12px 14px',
+};
+
+const iconStyle = {
+  fontSize: '14px',
+  width: '16px',
+  textAlign: 'center',
+  flex: '0 0 auto',
+};
+
+const pillBase = {
+  fontWeight: '600',
+  fontSize: '11px',
+  padding: '4px 10px',
+};
 
 export const SearchResults = () => {
   const [data, setData] =
@@ -65,17 +98,16 @@ export const SearchResults = () => {
 
   const routeLocation =
     useLocation();
-// const { id } =
-//   useParams();
+
   const location = useLocation();
 
   const queryParams = new URLSearchParams(location.search);
-const id = queryParams.get("searchId");
- const searchId =
-  id ||
-  routeLocation.state
-    ?.searchId ||
-  null;
+  const id = queryParams.get("searchId");
+  const searchId =
+    id ||
+    routeLocation.state
+      ?.searchId ||
+    null;
 
   const searchInfo =
     routeLocation.state
@@ -112,43 +144,43 @@ const id = queryParams.get("searchId");
     navigate,
   ]);
 
-
-
   const fetchData = useCallback(
-  async () => {
-    try {
-      setLoading(true);
+    async () => {
+      try {
+        setLoading(true);
 
-      const response =
-        await getSearchResultsBySearchId(
-          searchId
-        );
+        const response =
+          await getSearchResultsBySearchId(
+            searchId
+          );
 
-      if (
-        response?.isSuccess
-      ) {
-        setData(
-          response.result || []
-        );
-      } else {
+        if (
+          response?.isSuccess
+        ) {
+          setData(
+            response.result || []
+          );
+        } else {
+          setData([]);
+        }
+      } catch (error) {
+        handleErrors(error);
         setData([]);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      handleErrors(error);
-      setData([]);
-    } finally {
+    },
+    [searchId]
+  );
+
+  useEffect(() => {
+    if (searchId) {
+      fetchData();
+    } else {
       setLoading(false);
     }
-  },
-  [searchId]
-);
-useEffect(() => {
-  if (searchId) {
-    fetchData();
-  } else {
-    setLoading(false);
-  }
-}, [searchId, fetchData]);
+  }, [searchId, fetchData]);
+
   const filteredData =
     data.filter((item) => {
       const query =
@@ -193,47 +225,6 @@ useEffect(() => {
     setCurrentPage(1);
   };
 
-  const renderStars = (
-    rating
-  ) => {
-    if (!rating) return '-';
-
-    const full =
-      Math.floor(rating);
-
-    const half =
-      rating % 1 >= 0.5;
-
-    return (
-      <span title={`${rating}`}>
-        {Array.from({
-          length: full,
-        }).map((_, i) => (
-          <i
-            key={`f${i}`}
-            className="fa fa-star text-warning"
-            style={{
-              fontSize: '12px',
-            }}
-          ></i>
-        ))}
-
-        {half && (
-          <i
-            className="fa fa-star-half-o text-warning"
-            style={{
-              fontSize: '12px',
-            }}
-          ></i>
-        )}
-
-        <span className="ms-1 text-muted small">
-          ({rating})
-        </span>
-      </span>
-    );
-  };
-
   const exportToExcel =
     () => {
       const exportData =
@@ -243,41 +234,44 @@ useEffect(() => {
               index + 1,
 
             Title:
-              item.title || '-',
+              item.title || 'Business name unavailable',
 
             Type:
-              item.type || '-',
+              item.type || 'Not Specified',
 
             Address:
-              item.address || '-',
+              item.address || 'Address unavailable',
 
             Phone:
-              item.phone || '-',
+              item.phone || 'No mobile number',
+
+            Email:
+              item.email || 'Email unavailable',
 
             Rating:
-              item.rating || '-',
+              item.rating || 'No Ratings',
 
             Reviews:
-              item.review || '-',
+              item.review || 'No Reviews',
 
             Price:
-              item.priceDesc || '-',
+              item.priceDesc || 'Not Mentioned',
 
             Hours:
-              item.hours || '-',
+              item.hours || 'Hours unavailable',
 
             Latitude:
-              item.latitude || '-',
+              item.latitude || 'N/A',
 
             Longitude:
-              item.longitude || '-',
+              item.longitude || 'N/A',
 
             'Added On':
               item.addedOn
                 ? new Date(
                     item.addedOn
                   ).toLocaleString()
-                : '-',
+                : 'Date unavailable',
           })
         );
 
@@ -320,356 +314,322 @@ useEffect(() => {
     <>
       {pageAccessDetails.viewAccess ? (
         <div className="row">
-          <div className="col-xxl-12">
-            <div className="card mt-xxl-n5 shadow-sm border-0">
-              <div className="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
-                <div>
-                  <h5 className="mb-0">
-                    Search Results
-                  </h5>
+          <div className="col-12">
+            <div className="card border-0 shadow-sm rounded-3">
 
-                  {searchInfo.category && (
-                    <small className="text-muted">
-                      Category:{' '}
-                      <strong>
-                        {
-                          searchInfo.category
-                        }
-                      </strong>
-
-                      {searchInfo.radiusKm &&
-                        ` · Radius: ${searchInfo.radiusKm} KM`}
+              {/* HEADER */}
+              <div className="card-header bg-white border-bottom py-3 px-4 rounded-top-3">
+                <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                  <div>
+                    <h5 className="mb-1 fw-bold text-dark">
+                      Search Results
+                    </h5>
+                    <small className="text-muted d-flex align-items-center flex-wrap gap-1">
+                      <span>Total Records : <strong>{filteredData.length}</strong></span>
+                      {searchInfo.category && (
+                        <span className="d-flex align-items-center">
+                          <span className="mx-1">·</span>
+                          Category: <strong className="ms-1">{searchInfo.category}</strong>
+                        </span>
+                      )}
+                      {searchInfo.radiusKm && (
+                        <span className="d-flex align-items-center">
+                          <span className="mx-1">·</span>
+                          Radius: <strong className="ms-1">{searchInfo.radiusKm} KM</strong>
+                        </span>
+                      )}
+                      {userDetails && (
+                        <span className="d-flex align-items-center">
+                          <span className="mx-1">·</span>
+                          User: <strong className="ms-1">{userDetails.userName}</strong>
+                        </span>
+                      )}
                     </small>
-                  )}
-                </div>
+                  </div>
 
-                <div className="d-flex gap-2 align-items-center flex-wrap">
-                  {userDetails && (
-                    <span className="text-muted small">
-                      User:{' '}
-                      <strong>
-                        {
-                          userDetails.userName
-                        }
-                      </strong>
-                    </span>
-                  )}
+                  <div className="d-flex gap-2 align-items-center flex-wrap">
+                    <button
+                      className="btn btn-outline-secondary d-flex align-items-center gap-1"
+                      onClick={() =>
+                        navigate(
+                          '/google-search/savedsearch',
+                          {
+                            state: {
+                              userDetails,
+                            },
+                          }
+                        )
+                      }
+                    >
+                      <i className="ri-arrow-left-line" style={iconStyle}></i>
+                      Back
+                    </button>
 
-                  <button
-                    className="btn btn-sm btn-outline-secondary"
-                    onClick={() =>
-                      navigate(
-                        '/google-search/savedsearch',
-                        {
-                          state: {
-                            userDetails,
-                          },
-                        }
-                      )
-                    }
-                  >
-                    <i className="fa fa-arrow-left me-1"></i>
-                    Back
-                  </button>
+                    <button
+                      className="btn btn-success d-flex align-items-center gap-2"
+                      onClick={exportToExcel}
+                      disabled={filteredData.length === 0}
+                    >
+                      <i className="ri-file-excel-2-line" style={iconStyle}></i>
+                      Export Excel
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <div className="card-body p-4">
-                <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                  <EntriesDropdown
-                    entriesPerPage={
-                      entriesPerPage
-                    }
-                    onEntriesChange={
-                      handleEntriesChange
-                    }
-                    options={[
-                      10,
-                      25,
-                      50,
-                      100,
-                    ]}
+              {/* FILTER ROW */}
+              <div className="px-4 pt-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <EntriesDropdown
+                  entriesPerPage={entriesPerPage}
+                  onEntriesChange={handleEntriesChange}
+                  options={[10, 25, 50, 100]}
+                />
+
+                <div className="input-group" style={{ maxWidth: '320px', height: '42px' }}>
+                  <span className="input-group-text bg-white border-end-0">
+                    <i className="ri-search-line" style={iconStyle}></i>
+                  </span>
+                  <input
+                    type="text"
+                    className="form-control border-start-0"
+                    placeholder="Search business, address, phone..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setCurrentPage(1);
+                    }}
                   />
-
-                  <div className="d-flex gap-2 flex-wrap">
-                    <button
-                      className="btn btn-success"
-                      onClick={
-                        exportToExcel
-                      }
-                      disabled={
-                        filteredData.length ===
-                        0
-                      }
-                    >
-                      <i className="fa fa-file-excel-o me-1"></i>
-                      Export Excel
-                    </button>
-
-                    <input
-                      type="text"
-                      className="form-control"
-                      style={{
-                        width: '260px',
-                      }}
-                      placeholder="Search by name, address, type..."
-                      value={
-                        searchQuery
-                      }
-                      onChange={(
-                        e
-                      ) => {
-                        setSearchQuery(
-                          e.target
-                            .value
-                        );
-
-                        setCurrentPage(
-                          1
-                        );
-                      }}
-                    />
-                  </div>
                 </div>
+              </div>
 
+              {/* TABLE */}
+              <div className="card-body p-0">
                 {loading ? (
-                  <Loading />
+                  <div className="p-4">
+                    <Loading />
+                  </div>
                 ) : (
-                  <div className="table-responsive">
-                    <table className="table table-bordered table-hover align-middle">
-                      <TableHeader
-                        columns={[
-                          '#',
-                          'Title',
-                          'Type',
-                          'Address',
-                          'Phone',
-                          'Rating',
-                          'Reviews',
-                          'Price',
-                          'Hours',
-                          'Coordinates',
-                          'Added On',
-                        ]}
-                      />
+                  <div className="table-responsive mt-3">
+                    <table
+                      className="table table-hover table-bordered align-middle mb-0"
+                      style={{ tableLayout: 'fixed', width: '100%', minWidth: '1700px' }}
+                    >
+                      <thead style={{ background: '#F9FAFB', borderTop: '1px solid #E5E7EB', borderBottom: '1px solid #E5E7EB' }}>
+                        <tr>
+                          <th className="text-center" width="50" style={thStyle}>#</th>
+                          <th width="200" style={thStyle}>Search Name</th>
+                          <th width="130" style={thStyle}>Category</th>
+                          <th width="300" style={thStyle}>Address</th>
+                          <th width="220" style={thStyle}>Contact</th>
+                          <th width="110" style={thStyle}>Price</th>
+                          <th width="140" style={thStyle}>Rating</th>
+                          <th width="170" style={thStyle}>Working Hours</th>
+                          <th width="150" style={thStyle}>Added On</th>
+                        </tr>
+                      </thead>
 
                       <tbody>
-                        {currentData.length ===
-                        0 ? (
-                          <TableDataStatusError colspan="12" />
+                        {currentData.length === 0 ? (
+                          <TableDataStatusError colspan="9" />
                         ) : (
-                          currentData.map(
-                            (
-                              item,
-                              index
-                            ) => (
-                              <tr
-                                key={
-                                  item.id
-                                }
-                              >
-                                <td>
-                                  {(currentPage -
-                                    1) *
-                                    entriesPerPage +
-                                    index +
-                                    1}
-                                </td>
+                          currentData.map((item, index) => (
+                            <tr key={item.id}>
 
-                                <td
-                                  style={{
-                                    minWidth:
-                                      '220px',
-                                  }}
-                                >
-                                  <div className="fw-semibold">
-                                    {
-                                      item.title
-                                    }
-                                  </div>
+                              {/* SL NO */}
+                              <td className="text-center text-muted" style={tdStyle}>
+                                {(currentPage - 1) * entriesPerPage + index + 1}
+                              </td>
 
-                                  {item.desc && (
-                                    <small
-                                      className="text-muted d-block"
-                                      style={{
-                                        maxWidth:
-                                          '220px',
-                                        overflow:
-                                          'hidden',
-                                        textOverflow:
-                                          'ellipsis',
-                                        whiteSpace:
-                                          'nowrap',
-                                      }}
-                                      title={
-                                        item.desc
-                                      }
-                                    >
-                                      {
-                                        item.desc
-                                      }
-                                    </small>
-                                  )}
-                                </td>
-
-                                <td>
-                                  <span className="badge bg-info text-dark">
-                                    {item.type ||
-                                      '-'}
-                                  </span>
-                                </td>
-
-                                <td
-                                  style={{
-                                    minWidth:
-                                      '250px',
-                                  }}
-                                >
-                                  <small>
-                                    {item.address ||
-                                      '-'}
+                              {/* BUSINESS NAME */}
+                              <td style={tdStyle}>
+                                <div style={{ fontWeight: '600', color: '#111827', fontSize: '13px' }}>
+                                  {item.title || 'Business name unavailable'}
+                                </div>
+                                {item.desc && (
+                                  <small
+                                    className="text-muted d-block text-truncate"
+                                    style={{ maxWidth: '190px' }}
+                                    title={item.desc}
+                                  >
+                                    {item.desc}
                                   </small>
-                                </td>
+                                )}
+                              </td>
 
-                                <td
-                                  style={{
-                                    minWidth:
-                                      '150px',
-                                  }}
-                                >
+                              {/* CATEGORY */}
+                              <td style={tdStyle}>
+                                {item.type ? (
+                                  <span
+                                    className="badge rounded-pill"
+                                    style={{ ...pillBase, background: '#F3F4F6', color: '#374151' }}
+                                  >
+                                    {item.type}
+                                  </span>
+                                ) : (
+                                  <span className="text-muted small">Not Specified</span>
+                                )}
+                              </td>
+
+                              {/* ADDRESS */}
+                              <td style={{ ...tdStyle, whiteSpace: 'normal' }}>
+                                <div className="d-flex align-items-start gap-2 mb-1">
+                                  <i className="ri-map-pin-2-fill mt-1" style={{ ...iconStyle, color: '#DC2626' }}></i>
+                                  <span
+                                    style={{
+                                      display: '-webkit-box',
+                                      WebkitLineClamp: 2,
+                                      WebkitBoxOrient: 'vertical',
+                                      overflow: 'hidden',
+                                    }}
+                                    title={item.address}
+                                  >
+                                    {item.address || 'Address unavailable'}
+                                  </span>
+                                </div>
+
+                                {item.latitude && item.longitude ? (
+                                  <div className="d-flex align-items-center gap-2" style={{ paddingLeft: '22px' }}>
+                                    <i className="ri-crosshair-2-line" style={{ ...iconStyle, color: '#0284C7' }}></i>
+                                    <span style={{ fontSize: '11px', color: '#0284C7', fontWeight: '500' }}>
+                                      {item.latitude}, {item.longitude}
+                                    </span>
+                                  </div>
+                                ) : null}
+                              </td>
+
+                              {/* CONTACT */}
+                              <td style={{ ...tdStyle, whiteSpace: 'nowrap' }}>
+                                <div className="d-flex align-items-center gap-2 mb-1">
+                                  <i className="ri-phone-fill" style={{ ...iconStyle, color: item.phone ? '#16A34A' : '#9CA3AF' }}></i>
                                   {item.phone ? (
-                                    <a
-                                      href={`tel:${item.phone}`}
-                                      className="text-decoration-none"
-                                    >
-                                      {
-                                        item.phone
-                                      }
+                                    <a href={`tel:${item.phone}`} className="text-decoration-none" style={{ fontWeight: '500', color: 'inherit' }}>
+                                      {item.phone}
                                     </a>
                                   ) : (
-                                    '-'
+                                    <span className="text-muted">No mobile number</span>
                                   )}
-                                </td>
+                                </div>
 
-                                <td
-                                  style={{
-                                    minWidth:
-                                      '120px',
-                                  }}
-                                >
-                                  {renderStars(
-                                    item.rating
+                                <div className="d-flex align-items-center gap-2">
+                                  <i className="ri-mail-fill" style={{ ...iconStyle, color: item.email ? '#2563EB' : '#9CA3AF' }}></i>
+                                  {item.email ? (
+                                    <a
+                                      href={`mailto:${item.email}`}
+                                      className="text-decoration-none text-truncate"
+                                      style={{ maxWidth: '160px', color: 'inherit' }}
+                                      title={item.email}
+                                    >
+                                      {item.email}
+                                    </a>
+                                  ) : (
+                                    <span className="text-muted">Email unavailable</span>
                                   )}
-                                </td>
+                                </div>
+                              </td>
 
-                                <td>
-                                  {item.review?.toLocaleString() ||
-                                    '-'}
-                                </td>
+                              {/* PRICE */}
+                              <td style={tdStyle}>
+                                {item.priceDesc ? (
+                                  <span
+                                    className="badge rounded-pill"
+                                    style={{ ...pillBase, background: '#FEF3C7', color: '#92400E' }}
+                                  >
+                                    {item.priceDesc}
+                                  </span>
+                                ) : (
+                                  <span className="text-muted small">Not Mentioned</span>
+                                )}
+                              </td>
 
-                                <td>
-                                  {item.priceDesc ? (
-                                    <span className="badge bg-secondary">
-                                      {
-                                        item.priceDesc
-                                      }
+                              {/* RATING */}
+                              <td style={tdStyle}>
+                                <div className="d-flex flex-column" style={{ gap: '4px' }}>
+                                  {item.rating ? (
+                                    <span
+                                      className="d-inline-flex align-items-center gap-1 px-2 py-1 rounded-pill"
+                                      style={{ background: '#ECFDF5', color: '#065F46', width: 'fit-content', ...pillBase }}
+                                    >
+                                      <i className="ri-star-fill" style={{ fontSize: '11px' }}></i>
+                                      {item.rating}
                                     </span>
                                   ) : (
-                                    '-'
+                                    <span className="badge bg-light text-muted border" style={{ width: 'fit-content', ...pillBase }}>
+                                      No Ratings
+                                    </span>
                                   )}
-                                </td>
 
-                                <td
-                                  style={{
-                                    minWidth:
-                                      '140px',
-                                  }}
-                                >
-                                  {item.hours ? (
-                                    <small
+                                  {item.review ? (
+                                    <span
+                                      className="d-inline-flex align-items-center gap-1 px-2 py-1 rounded-pill"
+                                      style={{ background: '#EFF6FF', color: '#1D4ED8', width: 'fit-content', ...pillBase }}
+                                    >
+                                      <i className="ri-chat-3-fill" style={{ fontSize: '11px' }}></i>
+                                      {item.review} Reviews
+                                    </span>
+                                  ) : (
+                                    <span className="badge bg-light text-muted border" style={{ width: 'fit-content', ...pillBase }}>
+                                      No Reviews
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+
+                              {/* WORKING HOURS */}
+                              <td style={{ ...tdStyle, whiteSpace: 'normal' }}>
+                                {item.hours ? (
+                                  <div className="d-flex align-items-center gap-2">
+                                    <i className="ri-time-fill" style={{ ...iconStyle, color: '#7C3AED' }}></i>
+                                    <span
                                       className={
-                                        item.hours
-                                          .toLowerCase()
-                                          .includes(
-                                            'open'
-                                          )
+                                        item.hours.toLowerCase().includes('open')
                                           ? 'text-success fw-semibold'
-                                          : 'text-danger fw-semibold'
+                                          : item.hours.toLowerCase().includes('closed')
+                                          ? 'text-danger fw-semibold'
+                                          : ''
                                       }
                                     >
-                                      {
-                                        item.hours
-                                      }
-                                    </small>
-                                  ) : (
-                                    '-'
-                                  )}
-                                </td>
-
-                                <td
-                                  style={{
-                                    minWidth:
-                                      '150px',
-                                  }}
-                                >
-                                  <div>
-                                    <small>
-                                      <strong>
-                                        Lat:
-                                      </strong>{' '}
-                                      {item.latitude ??
-                                        '-'}
-                                    </small>
+                                      {item.hours}
+                                    </span>
                                   </div>
+                                ) : (
+                                  <span className="text-muted">Hours unavailable</span>
+                                )}
+                              </td>
 
-                                  <div>
-                                    <small>
-                                      <strong>
-                                        Lng:
-                                      </strong>{' '}
-                                      {item.longitude ??
-                                        '-'}
-                                    </small>
+                              {/* ADDED ON */}
+                              <td style={tdStyle}>
+                                {item.addedOn ? (
+                                  <div className="d-flex align-items-center gap-2">
+                                    <i className="ri-calendar-2-fill" style={{ ...iconStyle, color: '#EA580C' }}></i>
+                                    <div>
+                                      <div style={{ fontWeight: '500' }}>
+                                        {new Date(item.addedOn).toLocaleDateString()}
+                                      </div>
+                                      <small className="text-muted">
+                                        {new Date(item.addedOn).toLocaleTimeString()}
+                                      </small>
+                                    </div>
                                   </div>
-                                </td>
-
-                                <td
-                                  style={{
-                                    minWidth:
-                                      '180px',
-                                  }}
-                                >
-                                  {item.addedOn
-                                    ? new Date(
-                                        item.addedOn
-                                      ).toLocaleString()
-                                    : '-'}
-                                </td>
-                              </tr>
-                            )
-                          )
+                                ) : (
+                                  <span className="text-muted">Date unavailable</span>
+                                )}
+                              </td>
+                            </tr>
+                          ))
                         )}
                       </tbody>
                     </table>
                   </div>
                 )}
+              </div>
 
+              <div className="px-4 py-3 border-top">
                 <Pagination
-                  currentPage={
-                    currentPage
-                  }
-                  totalPages={
-                    totalPages
-                  }
-                  totalEntries={
-                    filteredData.length
-                  }
-                  entriesPerPage={
-                    entriesPerPage
-                  }
-                  onPageChange={
-                    setCurrentPage
-                  }
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalEntries={filteredData.length}
+                  entriesPerPage={entriesPerPage}
+                  onPageChange={setCurrentPage}
                 />
               </div>
             </div>
