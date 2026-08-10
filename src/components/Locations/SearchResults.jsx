@@ -436,9 +436,10 @@ export const SearchResults = () => {
                             <tr key={item.id}>
 
                               {/* SL NO */}
-                              <td className="text-center text-muted" style={tdStyle}>
-                                {(currentPage - 1) * entriesPerPage + index + 1}
-                              </td>
+                             {/* SL NO */}
+<td className="text-center text-muted" style={{ ...tdStyle, whiteSpace: 'nowrap' }}>
+  {(currentPage - 1) * entriesPerPage + index + 1}
+</td>
 
                               {/* BUSINESS NAME */}
                               <td style={tdStyle}>

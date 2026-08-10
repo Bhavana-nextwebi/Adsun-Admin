@@ -637,21 +637,17 @@ export const GooglePlaceSearchResults = () => {
 
                       <tr key={index}>
 
-                        <td
-                          className="text-center"
-                          style={tdStyle}
-                        >
-
-                          <div
-                            className="fw-bold"
-                            style={{
-                              color: "#2563EB"
-                            }}
-                          >
-                            {index + 1}
-                          </div>
-
-                        </td>
+                     <td
+  className="text-center"
+  style={{ ...tdStyle, whiteSpace: "nowrap" }}
+>
+  <div
+    className="fw-bold"
+    style={{ color: "#2563EB" }}
+  >
+    {index + 1}
+  </div>
+</td>
 
                         {/* BUSINESS */}
                         <td style={tdStyle}>
