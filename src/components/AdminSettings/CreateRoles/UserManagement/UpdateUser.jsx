@@ -173,7 +173,8 @@ export const UpdateUser = ({ onBack }) => {
                                         <div className="text-center">
                                             <div className="profile-user position-relative d-inline-block mx-auto mb-4">
                                                 <img
-                                                    src={currentProfileImage}
+                                                    src= {`https://4.nxtai.dev/${currentProfileImage}` ||
+                                                                                          allImages.defaultprofile}
                                                     className="rounded-circle avatar-xl img-thumbnail user-profile-image shadow"
                                                     alt="user-profile-image"
                                                 />

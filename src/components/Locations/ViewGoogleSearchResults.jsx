@@ -432,7 +432,7 @@ export const ViewGoogleSearchResult = () => {
                             <tr key={item.id}>
 
                               {/* SL NO */}
-                              <td className="text-center text-muted" style={tdStyle}>
+                              <td className="text-center text-muted" style={{ ...tdStyle, whiteSpace: 'nowrap' }}>
                                 {(currentPage - 1) * entriesPerPage + index + 1}
                               </td>
 
