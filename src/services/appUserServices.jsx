@@ -29,10 +29,22 @@ export const addAppUser = async (ownerData) => {
   });
   return response.data;
 };
+export const getAppUsers = async (filters = {}) => {
+  const payload = {
+    pageNumber: filters.pageNumber ?? 1,
+    pageSize: filters.pageSize ?? 10,
+    fromDate: filters.fromDate || null,
+    toDate: filters.toDate || null,
+    sParam: filters.sParam || "",
+    status: filters.status || "",
+    state: filters.state || "",
+    district: filters.district || "",
+    city: filters.city || "",
+  };
 
-export const getAppUsers = async () => {
-  return await axiosInstance.get('User/GetallAppUsers', { headers });
+  return await axiosInstance.post('User/GetallAppUsers', payload, { headers });
 };
+
 
 export const deleteAppUser = async (userid) => {
   return await axiosInstance.delete(`User/delete/${userid}`, { headers });

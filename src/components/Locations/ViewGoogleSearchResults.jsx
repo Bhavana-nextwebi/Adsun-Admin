@@ -439,7 +439,7 @@ export const ViewGoogleSearchResult = () => {
                               {/* APP USER */}
                               <td style={tdStyle}>
                                 <div style={{ fontWeight: '600', color: '#111827', fontSize: '13px' }}>
-                                  {item.userName || 'UserName name unavailable'}
+                                  {item.userName || '-'}
                                 </div>
                               </td>
 

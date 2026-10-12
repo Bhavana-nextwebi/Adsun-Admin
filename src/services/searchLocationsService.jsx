@@ -7,8 +7,21 @@ export const getAllCategories = async () => {
   return response.data;
 };
 
-export const getAllUserLocations = async () => {
-  const response = await axiosInstance.get('/all-user-locations/all-user-locations');
+export const getAllUserLocations = async (filters = {}) => {
+  const payload = {
+    pageNumber: filters.pageNumber ?? 1,
+    pageSize: filters.pageSize ?? 10,
+    fromDate: filters.fromDate || null,
+    toDate: filters.toDate || null,
+    sParam: filters.sParam || "",
+    userGuid: filters.userGuid || "",
+    state: filters.state || "",
+    city: filters.city || "",
+    area: filters.area || "",
+    status: filters.status || "",
+  };
+
+  const response = await axiosInstance.post('/all-user-locations/all-user-locations', payload);
   return response.data;
 };
 
@@ -33,9 +46,23 @@ export const getSearchResultsBySearchId = async (searchId) => {
   );
   return response.data;
 };
-export const getAllSavedSearches = async () => {
-  const response = await axiosInstance.get(
-    "/all-search-location-results/get-all-saved-search"
+export const getAllSavedSearches = async (filters = {}) => {
+  const payload = {
+    pageNumber: filters.pageNumber ?? 1,
+    pageSize: filters.pageSize ?? 10,
+    fromDate: filters.fromDate || null,
+    toDate: filters.toDate || null,
+    sParam: filters.sParam || "",
+    category: filters.category || "",
+    userGuid: filters.userGuid || "",
+    state: filters.state || "",
+    city: filters.city || "",
+    area: filters.area || "",
+  };
+
+  const response = await axiosInstance.post(
+    "/all-search-location-results/get-all-saved-search",
+    payload
   );
   return response.data;
 };
